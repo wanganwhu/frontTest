@@ -20,6 +20,23 @@
         }
     </style>
     <script src="https://openlayers.org/en/v4.4.2/build/ol.js" type="text/javascript"></script>
+    <!-- ECharts单文件引入 -->
+    <script src="http://echarts.baidu.com/build/dist/echarts.js"></script>
+    <script type="text/javascript">
+        // 路径配置
+        require.config({
+            paths: {
+                echarts: 'http://echarts.baidu.com/build/dist'
+            }
+        });
+    </script>
+
+    <style type="text/css">
+
+        li.active a {
+            border-radius: 0%;
+        }
+    </style>
 
 </head>
 <body>
@@ -111,39 +128,21 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-2">
+        <div class="col-md-2" style="height: 800px;position: relative;">
             <div class="row">
                 <div class="col-md-12">
-                    <ol>
-                        <li>
-                            Lorem ipsum dolor sit amet
-                        </li>
-                        <li>
-                            Consectetur adipiscing elit
-                        </li>
-                        <li>
-                            Integer molestie lorem at massa
-                        </li>
-                        <li>
-                            Facilisis in pretium nisl aliquet
-                        </li>
-                        <li>
-                            Nulla volutpat aliquam velit
-                        </li>
-                        <li>
-                            Faucibus porta lacus fringilla vel
-                        </li>
-                        <li>
-                            Aenean sit amet erat nunc
-                        </li>
-                        <li>
-                            Eget porttitor lorem
-                        </li>
-                    </ol>
+                    <ul class="nav nav-pills nav-stacked" id = "navLeft" style="border: solid 1px; border-color: #dddddd">
+                        <li id = "navLeftHeader" style="border-bottom: solid 1px; border-color: #cccccc "><a><h3>导航</h3></a></li>
+                        <li role="presentation" class="active" name="navLeft"><a href="#">Home</a></li>
+                        <li role="presentation" name="navLeft"><a href="#">Profile</a></li>
+                        <li role="presentation" name="navLeft"><a href="#">Messages</a></li>
+                    </ul>
                 </div>
             </div>
 
-            <div class="row">
+
+
+            <div class="row" style="position: absolute; bottom: 0px;">
                 <div class="col-md-12">
                     <table class="table">
                         <thead>
@@ -205,7 +204,7 @@
         </div>
         <div class="col-md-8">
             <div class="row">
-                <div id=map class="col-md-12">
+                <div id=map class="col-md-12" style="height: 520px">
                 </div>
                 <script type="text/javascript">
                     var map = new ol.Map({
@@ -223,7 +222,7 @@
                 </script>
             </div>
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-12" style="height: 40px; padding-top: 10px;">
                     <form action="" method="get">
                         时间范围控制区域：&nbsp;
                         <label><input name="Map" type="radio" value="" />地图 </label>
@@ -236,7 +235,53 @@
             </div>
             <div class="row">
                 <div class="col-md-12">
+                    <div id="table3" class="col-md-12" style="height:240px; width: 100%">
+                    </div>
 
+
+                <script type="text/javascript">
+                    // 使用
+                    require(
+                        [
+                            'echarts',
+                            'echarts/chart/line' // 使用柱状图就加载bar模块，按需加载
+                        ],
+                        function (ec) {
+                            // 基于准备好的dom，初始化echarts图表
+                            var myChart = ec.init(document.getElementById('table3'));
+
+                            var option = {
+                                tooltip: {
+                                    show: true
+                                },
+                                legend: {
+                                    data:['销量']
+                                },
+                                xAxis : [
+                                    {
+                                        type : 'category',
+                                        data : ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
+                                    }
+                                ],
+                                yAxis : [
+                                    {
+                                        type : 'value'
+                                    }
+                                ],
+                                series : [
+                                    {
+                                        "name":"销量",
+                                        "type":"line",
+                                        "data":[5, 20, 40, 10, 10, 20]
+                                    }
+                                ]
+                            };
+
+                            // 为echarts对象加载数据
+                            myChart.setOption(option);
+                        }
+                    );
+                </script>
                 </div>
             </div>
         </div>
@@ -244,15 +289,8 @@
             <div class="row">
                 <div id="mytable1" class="col-md-12" style="height:400px;width: 100%">
                 </div>
-                <script src="http://echarts.baidu.com/build/dist/echarts.js"></script>
-                <script type="text/javascript">
-                    // 路径配置
-                    require.config({
-                        paths: {
-                            echarts: 'http://echarts.baidu.com/build/dist'
-                        }
-                    });
 
+                <script type="text/javascript">
                     // 使用
                     require(
                         [
@@ -300,14 +338,7 @@
             <div class="row">
                 <div id="mytable2" class="col-md-12" style="height:400px;width: 100%">
                 </div>
-                <script src="http://echarts.baidu.com/build/dist/echarts.js"></script>
                 <script type="text/javascript">
-                    // 路径配置
-                    require.config({
-                        paths: {
-                            echarts: 'http://echarts.baidu.com/build/dist'
-                        }
-                    });
 
                     // 使用
                     require(
@@ -359,5 +390,29 @@
 <script src="js/jquery.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
 <script src="js/scripts.js"></script>
+
+<script type="text/javascript">
+
+    /**
+     * 点击导航栏
+     */
+
+    $("li[name='navLeft']").on("click", function () {
+        $("li[name='navLeft']").each(function () {
+            if($(this).hasClass('active')) {
+                $(this).removeClass('active');
+            }
+        });
+        $(this).addClass('active');
+    });
+
+    $('#navLeftHeader').on("click", function () {
+        $("li[name='navLeft']").slideToggle(280)
+    });
+
+</script>
+
+
+
 </body>
 </html>
