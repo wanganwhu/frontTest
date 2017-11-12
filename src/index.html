@@ -52,41 +52,19 @@
                         <span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span
                             class="icon-bar"></span><span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="#">Brand</a>
+                    <a class="navbar-brand" href="#">首页</a>
                 </div>
 
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                     <ul class="nav navbar-nav">
                         <li class="active">
-                            <a href="#">Link</a>
+                            <a href="#">位移变化监控</a>
                         </li>
                         <li>
-                            <a href="#">Link</a>
+                            <a href="#">位移速度监控</a>
                         </li>
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown<strong
-                                    class="caret"></strong></a>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a href="#">Action</a>
-                                </li>
-                                <li>
-                                    <a href="#">Another action</a>
-                                </li>
-                                <li>
-                                    <a href="#">Something else here</a>
-                                </li>
-                                <li class="divider">
-                                </li>
-                                <li>
-                                    <a href="#">Separated link</a>
-                                </li>
-                                <li class="divider">
-                                </li>
-                                <li>
-                                    <a href="#">One more separated link</a>
-                                </li>
-                            </ul>
+                        <li>
+                            <a href="#">雷达视图</a>
                         </li>
                     </ul>
                     <form class="navbar-form navbar-left" role="search">
@@ -94,15 +72,12 @@
                             <input type="text" class="form-control">
                         </div>
                         <button type="submit" class="btn btn-default">
-                            Submit
+                            搜索
                         </button>
                     </form>
                     <ul class="nav navbar-nav navbar-right">
-                        <li>
-                            <a href="#">Link</a>
-                        </li>
                         <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown<strong
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">账号管理<strong
                                     class="caret"></strong></a>
                             <ul class="dropdown-menu">
                                 <li>
@@ -132,7 +107,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <ul class="nav nav-pills nav-stacked" id = "navLeft" style="border: solid 1px; border-color: #dddddd">
-                        <li id = "navLeftHeader" style="border-bottom: solid 1px; border-color: #cccccc "><a><h3>导航</h3></a></li>
+                        <li id = "navLeftHeader" style="border-bottom: solid 1px; border-color: #cccccc "><a><h3>重点监测区域</h3></a></li>
                         <li role="presentation" class="active" name="navLeft"><a href="#">Home</a></li>
                         <li role="presentation" name="navLeft"><a href="#">Profile</a></li>
                         <li role="presentation" name="navLeft"><a href="#">Messages</a></li>
@@ -148,10 +123,10 @@
                         <thead>
                         <tr>
                             <th>
-                                Product
+                                雷达参数
                             </th>
                             <th>
-                                Payment Taken
+                                值
                             </th>
                         </tr>
                         </thead>
@@ -239,49 +214,49 @@
                     </div>
 
 
-                <script type="text/javascript">
-                    // 使用
-                    require(
-                        [
-                            'echarts',
-                            'echarts/chart/line' // 使用柱状图就加载bar模块，按需加载
-                        ],
-                        function (ec) {
-                            // 基于准备好的dom，初始化echarts图表
-                            var myChart = ec.init(document.getElementById('table3'));
+                    <script type="text/javascript">
+                        // 使用
+                        require(
+                            [
+                                'echarts',
+                                'echarts/chart/line' // 使用柱状图就加载bar模块，按需加载
+                            ],
+                            function (ec) {
+                                // 基于准备好的dom，初始化echarts图表
+                                var myChart = ec.init(document.getElementById('table3'));
 
-                            var option = {
-                                tooltip: {
-                                    show: true
-                                },
-                                legend: {
-                                    data:['销量']
-                                },
-                                xAxis : [
-                                    {
-                                        type : 'category',
-                                        data : ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
-                                    }
-                                ],
-                                yAxis : [
-                                    {
-                                        type : 'value'
-                                    }
-                                ],
-                                series : [
-                                    {
-                                        "name":"销量",
-                                        "type":"line",
-                                        "data":[5, 20, 40, 10, 10, 20]
-                                    }
-                                ]
-                            };
+                                var option = {
+                                    tooltip: {
+                                        show: true
+                                    },
+                                    legend: {
+                                        data:['销量']
+                                    },
+                                    xAxis : [
+                                        {
+                                            type : 'category',
+                                            data : ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
+                                        }
+                                    ],
+                                    yAxis : [
+                                        {
+                                            type : 'value'
+                                        }
+                                    ],
+                                    series : [
+                                        {
+                                            "name":"销量",
+                                            "type":"line",
+                                            "data":[5, 20, 40, 10, 10, 20]
+                                        }
+                                    ]
+                                };
 
-                            // 为echarts对象加载数据
-                            myChart.setOption(option);
-                        }
-                    );
-                </script>
+                                // 为echarts对象加载数据
+                                myChart.setOption(option);
+                            }
+                        );
+                    </script>
                 </div>
             </div>
         </div>
