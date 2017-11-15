@@ -109,19 +109,22 @@
         <div class="col-md-2" style="height: 800px;position: relative;">
             <div class="row">
 
-                <div id = "tree" class="col-md-12">
+                <div id="tree" class="col-md-12">
                     <ul>
                         <li>
                             <span class="btn btn-lg btn-success"><i class="glyphicon glyphicon-cog"></i>配置管理</span>
                             <ul>
                                 <li>
-                                    <span class="btn btn-primary"><i class="glyphicon glyphicon-plus-sign"></i> 数据源配置</span>
+                                    <span class="btn btn-primary"><i
+                                            class="glyphicon glyphicon-plus-sign"></i> 数据源配置</span>
                                     <ul>
                                         <li>
-                                            <span class="btn btn-sm btn-warning"><i class="icon-time"></i><a href="#" style="text-decoration: none;">Oracle数据库</a></span>
+                                            <span class="btn btn-sm btn-warning"><i class="icon-time"></i><a href="#"
+                                                                                                             style="text-decoration: none;">Oracle数据库</a></span>
                                         </li>
                                         <li>
-                                            <span class="btn btn-sm btn-warning"><i class="icon-time"></i><a href="#" style="text-decoration: none;">MySQL数据库</a></span>
+                                            <span class="btn btn-sm btn-warning"><i class="icon-time"></i><a href="#"
+                                                                                                             style="text-decoration: none;">MySQL数据库</a></span>
                                         </li>
                                     </ul>
                                 </li>
@@ -134,13 +137,16 @@
                             <span class="btn btn-lg btn-success"><i class="glyphicon glyphicon-cog"></i>数据查询</span>
                             <ul>
                                 <li>
-                                    <span class="btn btn-primary"><i class="glyphicon glyphicon-plus-sign"></i>数据分类</span>
+                                    <span class="btn btn-primary"><i
+                                            class="glyphicon glyphicon-plus-sign"></i>数据分类</span>
                                     <ul>
                                         <li>
-                                            <span class="btn btn-sm btn-warning"><i class="icon-time"></i><a href="#" style="text-decoration: none;">近期数据</a></span>
+                                            <span class="btn btn-sm btn-warning"><i class="icon-time"></i><a href="#"
+                                                                                                             style="text-decoration: none;">近期数据</a></span>
                                         </li>
                                         <li>
-                                            <span class="btn btn-sm btn-warning"><i class="icon-time"></i><a href="#" style="text-decoration: none;">历史数据</a></span>
+                                            <span class="btn btn-sm btn-warning"><i class="icon-time"></i><a href="#"
+                                                                                                             style="text-decoration: none;">历史数据</a></span>
                                         </li>
                                     </ul>
                                 </li>
@@ -150,7 +156,7 @@
                 </div>
 
                 <script type="text/javascript">
-                    $(function(){
+                    $(function () {
                         $('#tree li:has(ul)').addClass('parent_li').find(' > span').attr('title', 'Collapse this branch');
                         $('#tree li.parent_li > span').on('click', function (e) {
                             var children = $(this).parent('li.parent_li').find(' > ul > li');
@@ -167,7 +173,6 @@
                 </script>
 
             </div>
-
 
 
             <div class="row" style="position: absolute; bottom: 0px;">
@@ -233,15 +238,20 @@
         <div class="col-md-8">
             <div class="row">
                 <div id=map class="col-md-12" style="height: 500px"></div>
-                <div id=mapControl class="col-md-12" style="height: 30px">
-                    新建监测区域：新建图形工具
-                    <!--点选-->
-                    <input type="button"  name="pointSelect" id="pointSelect" value="点" onclick="pointSelect('Point');"/>
-                    <!--线选-->
-                    <input type="button"  name="polylineSelect" id="polylineSelect" value="折线" onclick="polylineSelect('LineString');"/>
-                    <!--多边形选-->
-                    <input type="button"  name="polygonSelect" id="polygonSelect" value="多边形" onclick="polygonSelect('Polygon');"/>
+                <div id=mapControl class="col-md-12" style="height: 40px">
+                        新建监测区域：
+                    <select name="" id="selectType">
+                        <option value="Null">图形工具</option>
+                        <option value="Point">点</option>
+                        <option value="LineString">线</option>
+                        <option value="Polygon">多边形</option>
+                        <option value="Circle">圆</option>
+                    </select>
+                    开始时间：<input type="date" name="begin_date"/>
+                    结束时间：<input type="date" name="end_date"/>
+                    <input type="submit" value="查询"/>
                 </div>
+
                 <script type="text/javascript">
                     var source = new ol.source.Vector({wrapX: false});
 
@@ -280,7 +290,7 @@
                         layers: [
                             new ol.layer.Tile({
                                 source: new ol.source.OSM()
-                            }),vector
+                            }), vector
                         ],
                         controls: ol.control.defaults({
                             attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
@@ -294,73 +304,60 @@
                     });
                     //map.addControl(new OpenLayers.Control.OverviewMap());
 
+                    //下拉列表切换
+                    var selectType = document.getElementById('selectType');
                     var draw; // global so we can remove it later
                     var old_feature;
-                    //var maxPoints = 2;
-                    function addInteraction(value) {
-                        var geometryFunction = function(coordinates, geometry) {
-                            if (!geometry) {
-                                geometry = new ol.geom.Polygon(null);
-                            }
-                            geometry.setCoordinates(coordinates);
-                            return geometry;
-                        };
+                    function addInteraction() {
+                        var value = selectType.value;
+                        if (value !== 'Null') {
+                            //ol.interaction.Draw该类允许用户在地图上绘制一些几何图形，
+                            // 可以通过构造方法设置type属性来指写是绘制哪种几何图形。目前支持点，线，多边形，圆形。
+                            draw = new ol.interaction.Draw({
+                                source: source,
+                                type: /** @type {ol.geom.GeometryType} */ (selectType.value)
+                            });
 
-                        draw = new ol.interaction.Draw({
-                            source: source,
-                            type: /** @type {ol.geom.GeometryType} */ (value),
-                            geometryFunction: geometryFunction,
-                            //maxPoints: maxPoints
-                        });
+                            //画图层开始前先删除之前画的图形
+                            draw.on('drawstart',
+                                function(evt) {
+                                    // set old_feature
+                                    if(old_feature!=null && old_feature!="undifined"){
+                                        //删除前一个图层
+                                        source.removeFeature(old_feature);
+                                    }
+                                    old_feature = evt.feature;
+                                }, this);
 
-                        //画图层开始前先删除之前画的图形
-                        draw.on('drawstart',
-                            function(evt) {
-                                // set old_feature
-                                if(old_feature!=null && old_feature!="undifined"){
-                                    //删除前一个图层
-                                    source.removeFeature(old_feature);
-                                }
-                                old_feature = evt.feature;
-                            }, this);
-
-                        map.addInteraction(draw);
+                            map.addInteraction(draw);
+                        }
                     }
 
-                    /**
-                     * 激活画点*/
-                    function pointSelect(value){
-                        //value = "Point";
-                        //maxPoints = 1;
+                    selectType.onchange = function () {
                         map.removeInteraction(draw);
-                        addInteraction(value);
-                    }
+                        addInteraction();
 
-                    /**
-                     * 激活画折线*/
-                    function polylineSelect(value){
-                        //value = "LineString";
-                        map.removeInteraction(draw);
-                        addInteraction(value);
+                    };
+                    addInteraction();
 
-                    }
+                    //向地图中添加点击处理程序以呈现弹出式窗口。
+                    map.on('click', function (evt) {
+                        //坐标
+                        var coordinate = evt.coordinate;
+                        //ol.proj.transform(coordinate, source, destination)来转换不同的坐标点，
+                        // 比如，将地理坐标系108.4，23.7转换成墨卡托坐标系
+                        var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(
+                            coordinate, 'EPSG:3857', 'EPSG:4326'
+                        ));
+                        console.log(hdms);
+                        showCoordinateInfo();
+                       // content.innerHTML = '<ul>' + '<li>' + "坐标系：" + '<span>' + '<code>' + hdms + '</code>' + '</span>' + '</li>' + '</ul>';
+                        // overlay.setPosition(coordinate);
 
-                    //激活画图
-                    function polygonSelect(value){
-                        //value = "Polygon";
-                        map.removeInteraction(draw);
-                        addInteraction(value);
-                    }
-
-                    //清理按钮调用
-                    /*function TEST_Box_Clear(){
-                        removeAllFeature();
-                        map.removeInteraction(draw);
-
-                    }*/
+                    });
 
                     //清空所有图形
-                    function removeAllFeature() {
+                    /*function removeAllFeature() {
                         var features = source.getFeatures();
                         if (features != null && features.length > 0) {
                             for (x in features) {
@@ -372,9 +369,9 @@
                             }
                         }
                     }
-
+*/
                     //获得图形坐标信息
-                    /*function showCoordinateInfo(){
+                    function showCoordinateInfo(){
                         var features = source.getFeatures();
                         if (features != null && features.length > 0) {
                             for (x in features) {
@@ -383,22 +380,10 @@
                                 alert(lonlats);
                             }
                         }
-                    }*/
+                    }
                 </script>
             </div>
-            <div class="row">
-                <div class="col-md-12" style="height: 30px; padding-top: 10px;">
-                    <form action="http://localhost:8080/ServletDemo/HelloWorld" method="get">
 
-                        时间范围控制区域：&nbsp;
-                        <label><input name="Map" type="radio" value="" />地图 </label>
-                        <label><input name="Map" type="radio" value="" />直线图 </label>
-                        开始时间：<input type="date" name="begin_date"/>
-                        结束时间：<input type="date" name="end_date"/>
-                        <input type="submit" value = "查询"/>
-                    </form>
-                </div>
-            </div>
             <div class="row">
                 <div class="col-md-12">
                     <div id="table3" class="col-md-12" style="height:240px; width: 100%">
@@ -421,24 +406,24 @@
                                         show: true
                                     },
                                     legend: {
-                                        data:['销量']
+                                        data: ['销量']
                                     },
-                                    xAxis : [
+                                    xAxis: [
                                         {
-                                            type : 'category',
-                                            data : ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
+                                            type: 'category',
+                                            data: ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"]
                                         }
                                     ],
-                                    yAxis : [
+                                    yAxis: [
                                         {
-                                            type : 'value'
+                                            type: 'value'
                                         }
                                     ],
-                                    series : [
+                                    series: [
                                         {
-                                            "name":"销量",
-                                            "type":"line",
-                                            "data":[5, 20, 40, 10, 10, 20]
+                                            "name": "销量",
+                                            "type": "line",
+                                            "data": [5, 20, 40, 10, 10, 20]
                                         }
                                     ]
                                 };
@@ -448,6 +433,17 @@
                             }
                         );
                     </script>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12" style="height: 30px; padding-top: 10px;">
+                    <form action="http://localhost:8080/ServletDemo/HelloWorld" method="get">
+                        统计图查询：&nbsp;
+                        开始时间：<input type="date" name="begin_date"/>
+                        结束时间：<input type="date" name="end_date"/>
+                        <input type="submit" value="查询"/>
+                    </form>
                 </div>
             </div>
         </div>
@@ -554,7 +550,6 @@
 </div>
 
 
-
 <!--<script type="text/javascript">
 
     /**
@@ -575,7 +570,6 @@
     });
 
 </script>-->
-
 
 
 </body>
