@@ -30,6 +30,9 @@
             }
         });
     </script>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/scripts.js"></script>
 
     <style type="text/css">
 
@@ -105,14 +108,64 @@
     <div class="row">
         <div class="col-md-2" style="height: 800px;position: relative;">
             <div class="row">
-                <div class="col-md-12">
-                    <ul class="nav nav-pills nav-stacked" id = "navLeft" style="border: solid 1px; border-color: #dddddd">
-                        <li id = "navLeftHeader" style="border-bottom: solid 1px; border-color: #cccccc "><a><h3>重点监测区域</h3></a></li>
-                        <li role="presentation" class="active" name="navLeft"><a href="#">Home</a></li>
-                        <li role="presentation" name="navLeft"><a href="#">Profile</a></li>
-                        <li role="presentation" name="navLeft"><a href="#">Messages</a></li>
+
+                <div id = "tree" class="col-md-12">
+                    <ul>
+                        <li>
+                            <span class="btn btn-lg btn-success"><i class="glyphicon glyphicon-cog"></i>配置管理</span>
+                            <ul>
+                                <li>
+                                    <span class="btn btn-primary"><i class="glyphicon glyphicon-plus-sign"></i> 数据源配置</span>
+                                    <ul>
+                                        <li>
+                                            <span class="btn btn-sm btn-warning"><i class="icon-time"></i><a href="#" style="text-decoration: none;">Oracle数据库</a></span>
+                                        </li>
+                                        <li>
+                                            <span class="btn btn-sm btn-warning"><i class="icon-time"></i><a href="#" style="text-decoration: none;">MySQL数据库</a></span>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <ul>
+                        <li>
+                            <span class="btn btn-lg btn-success"><i class="glyphicon glyphicon-cog"></i>数据查询</span>
+                            <ul>
+                                <li>
+                                    <span class="btn btn-primary"><i class="glyphicon glyphicon-plus-sign"></i>数据分类</span>
+                                    <ul>
+                                        <li>
+                                            <span class="btn btn-sm btn-warning"><i class="icon-time"></i><a href="#" style="text-decoration: none;">近期数据</a></span>
+                                        </li>
+                                        <li>
+                                            <span class="btn btn-sm btn-warning"><i class="icon-time"></i><a href="#" style="text-decoration: none;">历史数据</a></span>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
+
+                <script type="text/javascript">
+                    $(function(){
+                        $('#tree li:has(ul)').addClass('parent_li').find(' > span').attr('title', 'Collapse this branch');
+                        $('#tree li.parent_li > span').on('click', function (e) {
+                            var children = $(this).parent('li.parent_li').find(' > ul > li');
+                            if (children.is(":visible")) {
+                                children.hide('fast');
+                                $(this).attr('title', 'Expand this branch').find(' > i').addClass('icon-plus-sign').removeClass('icon-minus-sign');
+                            } else {
+                                children.show('fast');
+                                $(this).attr('title', 'Collapse this branch').find(' > i').addClass('icon-minus-sign').removeClass('icon-plus-sign');
+                            }
+                            e.stopPropagation();
+                        });
+                    });
+                </script>
+
             </div>
 
 
@@ -179,26 +232,164 @@
         </div>
         <div class="col-md-8">
             <div class="row">
-                <div id=map class="col-md-12" style="height: 520px">
+                <div id=map class="col-md-12" style="height: 500px"></div>
+                <div id=mapControl class="col-md-12" style="height: 30px">
+                    新建监测区域：新建图形工具
+                    <!--点选-->
+                    <input type="button"  name="pointSelect" id="pointSelect" value="点" onclick="pointSelect('Point');"/>
+                    <!--线选-->
+                    <input type="button"  name="polylineSelect" id="polylineSelect" value="折线" onclick="polylineSelect('LineString');"/>
+                    <!--多边形选-->
+                    <input type="button"  name="polygonSelect" id="polygonSelect" value="多边形" onclick="polygonSelect('Polygon');"/>
                 </div>
                 <script type="text/javascript">
+                    var source = new ol.source.Vector({wrapX: false});
+
+                    var vector = new ol.layer.Vector({
+                        source: source,
+                        style: new ol.style.Style({
+                            fill: new ol.style.Fill({
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            }),
+                            stroke: new ol.style.Stroke({
+                                color: '#ffcc33',
+                                width: 2
+                            }),
+                            image: new ol.style.Circle({
+                                radius: 7,
+                                fill: new ol.style.Fill({
+                                    color: '#ffcc33'
+                                })
+                            })
+                        })
+                    });
+
+                    var mousePositionControl = new ol.control.MousePosition({
+                        coordinateFormat: ol.coordinate.createStringXY(4),
+                        projection: 'EPSG:4326',
+                        // comment the following two lines to have the mouse position
+                        // be placed within the map.
+                        className: 'custom-mouse-position',
+                        target: document.getElementById('mouse-position'),
+                        undefinedHTML: '&nbsp;'
+                    });
+
+
                     var map = new ol.Map({
                         target: 'map',
                         layers: [
                             new ol.layer.Tile({
                                 source: new ol.source.OSM()
-                            })
+                            }),vector
                         ],
+                        controls: ol.control.defaults({
+                            attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+                                collapsible: false
+                            })
+                        }).extend([mousePositionControl]),
                         view: new ol.View({
                             center: ol.proj.fromLonLat([37.41, 8.82]),
                             zoom: 4
                         })
                     });
+                    //map.addControl(new OpenLayers.Control.OverviewMap());
+
+                    var draw; // global so we can remove it later
+                    var old_feature;
+                    //var maxPoints = 2;
+                    function addInteraction(value) {
+                        var geometryFunction = function(coordinates, geometry) {
+                            if (!geometry) {
+                                geometry = new ol.geom.Polygon(null);
+                            }
+                            geometry.setCoordinates(coordinates);
+                            return geometry;
+                        };
+
+                        draw = new ol.interaction.Draw({
+                            source: source,
+                            type: /** @type {ol.geom.GeometryType} */ (value),
+                            geometryFunction: geometryFunction,
+                            //maxPoints: maxPoints
+                        });
+
+                        //画图层开始前先删除之前画的图形
+                        draw.on('drawstart',
+                            function(evt) {
+                                // set old_feature
+                                if(old_feature!=null && old_feature!="undifined"){
+                                    //删除前一个图层
+                                    source.removeFeature(old_feature);
+                                }
+                                old_feature = evt.feature;
+                            }, this);
+
+                        map.addInteraction(draw);
+                    }
+
+                    /**
+                     * 激活画点*/
+                    function pointSelect(value){
+                        //value = "Point";
+                        //maxPoints = 1;
+                        map.removeInteraction(draw);
+                        addInteraction(value);
+                    }
+
+                    /**
+                     * 激活画折线*/
+                    function polylineSelect(value){
+                        //value = "LineString";
+                        map.removeInteraction(draw);
+                        addInteraction(value);
+
+                    }
+
+                    //激活画图
+                    function polygonSelect(value){
+                        //value = "Polygon";
+                        map.removeInteraction(draw);
+                        addInteraction(value);
+                    }
+
+                    //清理按钮调用
+                    /*function TEST_Box_Clear(){
+                        removeAllFeature();
+                        map.removeInteraction(draw);
+
+                    }*/
+
+                    //清空所有图形
+                    function removeAllFeature() {
+                        var features = source.getFeatures();
+                        if (features != null && features.length > 0) {
+                            for (x in features) {
+                                var properties = features[x].getProperties();
+                                var id = properties.id;
+                                //if (id == selectedFeatureID) {
+                                source.removeFeature(features[x]);
+                                //}
+                            }
+                        }
+                    }
+
+                    //获得图形坐标信息
+                    /*function showCoordinateInfo(){
+                        var features = source.getFeatures();
+                        if (features != null && features.length > 0) {
+                            for (x in features) {
+                                var geom = features[x].getGeometry();//Geometry
+                                var lonlats = geom.A;
+                                alert(lonlats);
+                            }
+                        }
+                    }*/
                 </script>
             </div>
             <div class="row">
-                <div class="col-md-12" style="height: 40px; padding-top: 10px;">
-                    <form action="" method="get">
+                <div class="col-md-12" style="height: 30px; padding-top: 10px;">
+                    <form action="http://localhost:8080/ServletDemo/HelloWorld" method="get">
+
                         时间范围控制区域：&nbsp;
                         <label><input name="Map" type="radio" value="" />地图 </label>
                         <label><input name="Map" type="radio" value="" />直线图 </label>
@@ -362,11 +553,9 @@
     </div>
 </div>
 
-<script src="js/jquery.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="js/scripts.js"></script>
 
-<script type="text/javascript">
+
+<!--<script type="text/javascript">
 
     /**
      * 点击导航栏
@@ -385,7 +574,7 @@
         $("li[name='navLeft']").slideToggle(280)
     });
 
-</script>
+</script>-->
 
 
 
