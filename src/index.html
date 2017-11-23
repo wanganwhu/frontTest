@@ -115,309 +115,337 @@
         </div>
         <div class="col-md-7">
             <div class="row">
-                <div id=map class="col-md-12" style="height: 450px"></div>
-                <form class="form-inline">
-                    <label>新建监测区域： &nbsp;</label>
-                    <select id="type">
-                        <option value="None">None</option>
-                        <option value="Point">Point</option>
-                        <option value="LineString">LineString</option>
-                        <option value="Polygon">Polygon</option>
-                        <option value="Circle">Circle</option>
-                    </select>
-                    开始时间：<input type="date" name="begin_date"/>
-                    结束时间：<input type="date" name="end_date"/>
-                    <input type="submit" value="查询"/>
-                </form>
+                <div id=map class="col-md-12" style="height: 550px"></div>
                 <div id="wrapper" class="col-md-12" style="height: 50px">
-                    <div id="location"></div>
-                    <div id="scale"></div>
-                    <div id="nodelist"></div>
-                </div>
-                    <script type="text/javascript">
-
-                        var format = 'image/png';
-
-                        //have to be updated bounds when loading
-                        var bounds = [-0.05, -0.5,
-                            130.65, 100.06];
-
-                        var mousePositionControl = new ol.control.MousePosition({
-                            className: 'custom-mouse-position',
-                            target: document.getElementById('location'),
-                            coordinateFormat: ol.coordinate.createStringXY(5),
-                            undefinedHTML: '&nbsp;'
-                        });
-
-                        //画图用的source和vector
-                        var source = new ol.source.Vector({wrapX: false});
-                        var vector = new ol.layer.Vector({
-                            source: source
-                        });
-
-
-                        var background = new ol.layer.Tile({ //tiled map
-                            visible: true,
-                            source: new ol.source.TileWMS({
-                                url: 'http://47.93.237.6:8080/map/lidar/wms',
-                                params: {
-                                    'FORMAT': format,
-                                    'VERSION': '1.1.1',
-                                    tiled: true,
-                                    STYLES: '',
-                                    LAYERS: 'lidar:background',
-                                    tilesOrigin: -0.05 + "," + -0.5
-                                }
-                            })
-                        });
-
-                        var basic_map = new ol.layer.Image({ //untiled map,简单背景格网图，正方形；可能这个图层不需要，视效率而定
-                            source: new ol.source.ImageWMS({
-                                ratio: 1,
-                                url: 'http://47.93.237.6:8080/map/lidar/wms',
-                                params: {
-                                    'FORMAT': format,
-                                    'VERSION': '1.1.1',
-                                    STYLES: '',
-                                    VIEWPARAMS: 'time_value:\'2017-11-08 04:00\';x1:8;y1:35;x2:40;y2:80',//需要动态修改
-                                    LAYERS: 'lidar:basic_map',
-                                }
-                            })
-                        });
-
-                        var detail_map = new ol.layer.Image({//untiled map,详细变形图，点图
-                            source: new ol.source.ImageWMS({
-                                ratio: 1,
-                                url: 'http://47.93.237.6:8080/map/lidar/wms',
-                                params: {
-                                    'FORMAT': format,
-                                    'VERSION': '1.1.1',
-                                    STYLES: '',
-                                    VIEWPARAMS: 'time_value:\'2017-11-08 04:00\';x1:8;y1:35;x2:40;y2:80', //需要动态修改
-                                    LAYERS: 'lidar:detail_map',
-                                }
-                            })
-                        });
-
-                        var projection = new ol.proj.Projection({
-                            code: 'EPSG:404000',
-                            units: 'degrees',
-                            axisOrientation: 'neu',
-                            global: false
-                        });
-
-                        var map = new ol.Map({
-                            controls: ol.control.defaults({
-                                attribution: false
-                            }).extend([mousePositionControl]),
-                            target: 'map',
-                            layers: [
-                                background,
-                                //basic_map,
-                                detail_map,
-                                vector//画图用的
-                            ],
-                            view: new ol.View({
-                                projection: projection
-                            })
-                        });
-
-                        map.getView().on('change:resolution', function (evt) {
-                            var resolution = evt.target.get('resolution');
-                            var units = map.getView().getProjection().getUnits();
-                            var dpi = 25.4 / 0.28;
-                            var mpu = ol.proj.METERS_PER_UNIT[units];
-                            var scale = resolution * mpu * 39.37 * dpi;
-                            if (scale >= 9500 && scale <= 950000) {
-                                scale = Math.round(scale / 1000) + "K";
-                            } else if (scale >= 950000) {
-                                scale = Math.round(scale / 1000000) + "M";
-                            } else {
-                                scale = Math.round(scale);
-                            }
-                            document.getElementById('scale').innerHTML = "Scale = 1 : " + scale;
-                        });
-
-                        map.getView().fit(bounds, map.getSize());
-                        map.on('singleclick', function (evt) {
-                            if (document.getElementById('type').value !== 'None') return;
-                            document.getElementById('nodelist').innerHTML = "Loading... please wait...";
-                            var view = map.getView();
-                            var viewResolution = view.getResolution();
-                            var source = detail_map.getSource();
-                            var url = source.getGetFeatureInfoUrl(
-                                evt.coordinate, viewResolution, view.getProjection(),
-                                {'INFO_FORMAT': 'text/html', 'FEATURE_COUNT': 50});
-                            if (url) {
-                                document.getElementById('nodelist').innerHTML = '<iframe seamless src="' + url + '"></iframe>';
-                            }
-                        });
-
-                        var typeSelect = document.getElementById('type');
-
-                        var draw; // global so we can remove it later
-                        function addInteraction() {
-                            var value = typeSelect.value;
-                            if (value !== 'None') {
-                                draw = new ol.interaction.Draw({
-                                    source: source,
-                                    type: /** @type {ol.geom.GeometryType} */ (typeSelect.value)
-                                });
-                                map.addInteraction(draw);
-                            }
-                        }
-
-                        /**
-                         * Handle change event.
-                         */
-                        typeSelect.onchange = function () {
-                            map.removeInteraction(draw);
-                            addInteraction();
-                        };
-
-                        addInteraction();
-
-                    </script>
-
-                </div>
-
-
-
-                <div class="row">
-                    <div class="col-md-12" style="height: 30px; padding-top: 10px;">
-                        <form action="http://localhost:8080/ServletDemo/HelloWorld" method="get">
-                            统计图查询：&nbsp;
-                            开始时间：<input type="date" name="begin_date"/>
-                            结束时间：<input type="date" name="end_date"/>
-                            <input type="submit" value="查询"/>
-                        </form>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-12" id="location"></div>
+                            <div class="col-md-12" id="scale"></div>
+                            <div  class="col-md-12" id="nodelist"></div>
+                        </div>
                     </div>
+
+                    <div class="col-md-6">
+                        <div class="row">
+                            <form class="form-inline">
+                                <label>新建监测区域： &nbsp;</label>
+                                <select id="type">
+                                    <option value="None">None</option>
+                                    <option value="Point">Point</option>
+                                    <option value="LineString">LineString</option>
+                                    <option value="Polygon">Polygon</option>
+                                    <option value="Circle">Circle</option>
+                                </select>&nbsp;
+                                &nbsp;开始时间：&nbsp;<input type="datetime-local" name="begin_date"/>
+                                &nbsp;结束时间：&nbsp;<input type="datetime-local" name="end_date"/>&nbsp;
+                                <input type="submit" value="查询"/>
+                            </form>
+                        </div>
+                    </div>
+
+
+                </div>
+
+
+
+                <script type="text/javascript">
+
+                    var format = 'image/png';
+
+                    //have to be updated bounds when loading
+                    var bounds = [-0.05, -0.5,
+                        130.65, 100.06];
+
+                    var mousePositionControl = new ol.control.MousePosition({
+                        className: 'custom-mouse-position',
+                        target: document.getElementById('location'),
+                        coordinateFormat: ol.coordinate.createStringXY(5),
+                        undefinedHTML: '&nbsp;'
+                    });
+
+                    //画图用的source和vector
+                    var source = new ol.source.Vector({wrapX: false});
+                    var vector = new ol.layer.Vector({
+                        source: source
+                    });
+
+
+                    var background = new ol.layer.Tile({ //tiled map
+                        visible: true,
+                        source: new ol.source.TileWMS({
+                            url: 'http://47.93.237.6:8080/map/lidar/wms',
+                            params: {
+                                'FORMAT': format,
+                                'VERSION': '1.1.1',
+                                tiled: true,
+                                STYLES: '',
+                                LAYERS: 'lidar:background',
+                                tilesOrigin: -0.05 + "," + -0.5
+                            }
+                        })
+                    });
+
+                    var basic_map = new ol.layer.Image({ //untiled map,简单背景格网图，正方形；可能这个图层不需要，视效率而定
+                        source: new ol.source.ImageWMS({
+                            ratio: 1,
+                            url: 'http://47.93.237.6:8080/map/lidar/wms',
+                            params: {
+                                'FORMAT': format,
+                                'VERSION': '1.1.1',
+                                STYLES: '',
+                                VIEWPARAMS: 'time_value:\'2017-11-08 04:00\';x1:8;y1:35;x2:40;y2:80',//需要动态修改
+                                LAYERS: 'lidar:basic_map',
+                            }
+                        })
+                    });
+
+                    var detail_map = new ol.layer.Image({//untiled map,详细变形图，点图
+                        source: new ol.source.ImageWMS({
+                            ratio: 1,
+                            url: 'http://47.93.237.6:8080/map/lidar/wms',
+                            params: {
+                                'FORMAT': format,
+                                'VERSION': '1.1.1',
+                                STYLES: '',
+                                VIEWPARAMS: 'time_value:\'2017-11-08 04:00\';x1:8;y1:35;x2:40;y2:80', //需要动态修改
+                                LAYERS: 'lidar:detail_map',
+                            }
+                        })
+                    });
+
+                    var projection = new ol.proj.Projection({
+                        code: 'EPSG:404000',
+                        units: 'degrees',
+                        axisOrientation: 'neu',
+                        global: false
+                    });
+
+                    var map = new ol.Map({
+                        controls: ol.control.defaults({
+                            attribution: false
+                        }).extend([mousePositionControl]),
+                        target: 'map',
+                        layers: [
+                            background,
+                            //basic_map,
+                            detail_map,
+                            vector//画图用的
+                        ],
+                        view: new ol.View({
+                            projection: projection
+                        })
+                    });
+
+                    map.getView().on('change:resolution', function (evt) {
+                        var resolution = evt.target.get('resolution');
+                        var units = map.getView().getProjection().getUnits();
+                        var dpi = 25.4 / 0.28;
+                        var mpu = ol.proj.METERS_PER_UNIT[units];
+                        var scale = resolution * mpu * 39.37 * dpi;
+                        if (scale >= 9500 && scale <= 950000) {
+                            scale = Math.round(scale / 1000) + "K";
+                        } else if (scale >= 950000) {
+                            scale = Math.round(scale / 1000000) + "M";
+                        } else {
+                            scale = Math.round(scale);
+                        }
+                        document.getElementById('scale').innerHTML = "Scale = 1 : " + scale;
+                    });
+
+                    map.getView().fit(bounds, map.getSize());
+                    map.on('singleclick', function (evt) {
+                        if (document.getElementById('type').value !== 'None') return;
+                        document.getElementById('nodelist').innerHTML = "Loading... please wait...";
+                        var view = map.getView();
+                        var viewResolution = view.getResolution();
+                        var source = detail_map.getSource();
+                        var url = source.getGetFeatureInfoUrl(
+                            evt.coordinate, viewResolution, view.getProjection(),
+                            {'INFO_FORMAT': 'text/html', 'FEATURE_COUNT': 50});
+                        if (url) {
+                            //
+                            document.getElementById('nodelist').innerHTML = '<iframe seamless src="' + url + '"></iframe>';
+                        }
+                    });
+
+                    var typeSelect = document.getElementById('type');
+
+                    var draw; // global so we can remove it later
+                    var old_feature;
+
+                    function addInteraction() {
+                        var value = typeSelect.value;
+                        if (value !== 'None') {
+                            draw = new ol.interaction.Draw({
+                                source: source,
+                                type: /** @type {ol.geom.GeometryType} */ (typeSelect.value)
+                            });
+                            //画图层开始前先删除之前画的图形
+                            if (value !== 'Point') {
+                                draw.on('drawstart',
+                                    function (evt) {
+                                        // set old_feature
+                                        if (old_feature != null && old_feature != "undifined") {
+                                            //删除前一个图层
+                                            source.removeFeature(old_feature);
+                                        }
+                                        old_feature = evt.feature;
+                                    }, this);
+                            }
+                            map.addInteraction(draw);
+                        }
+                    }
+
+                    /**
+                     * Handle change event.
+                     */
+                    typeSelect.onchange = function () {
+                        map.removeInteraction(draw);
+                        addInteraction();
+                    };
+                    addInteraction();
+                </script>
+
+            </div>
+
+
+
+        </div>
+
+        <div class="col-md-3">
+            <div class="row">
+                <div id="mytable1" class="col-md-12" style="height:300px;width: 100%">
+                </div>
+
+                <script type="text/javascript">
+                    // 使用
+                    require(
+                        [
+                            'echarts',
+                            'echarts/chart/bar' // 使用柱状图就加载bar模块，按需加载
+                        ],
+                        function (ec) {
+                            // 基于准备好的dom，初始化echarts图表
+                            var myChart = ec.init(document.getElementById('mytable1'));
+
+                            var option = {
+                                tooltip: {
+                                    show: true
+                                },
+                                legend: {
+                                    data: ['销量']
+                                },
+                                xAxis: [
+                                    {
+                                        type: 'category',
+                                        data: ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"]
+                                    }
+                                ],
+                                yAxis: [
+                                    {
+                                        type: 'value'
+                                    }
+                                ],
+                                series: [
+                                    {
+                                        "name": "销量",
+                                        "type": "bar",
+                                        "data": [5, 20, 40, 10, 10, 20]
+                                    }
+                                ]
+                            };
+
+                            // 为echarts对象加载数据
+                            myChart.setOption(option);
+                        }
+                    );
+                </script>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12" style="height: 60px; padding-top: 10px;">
+                    <form action="http://localhost:8080/ServletDemo/HelloWorld" method="get">
+                        统计图查询：&nbsp;
+                        开始时间：<input type="datetime-local" name="begin_date"/>
+                        结束时间：<input type="datetime-local" name="end_date"/>
+                        <input type="submit" value="查询"/>
+                    </form>
                 </div>
             </div>
 
-            <div class="col-md-3">
-                <div class="row">
-                    <div id="mytable1" class="col-md-12" style="height:400px;width: 100%">
-                    </div>
-
-                    <script type="text/javascript">
-                        // 使用
-                        require(
-                            [
-                                'echarts',
-                                'echarts/chart/bar' // 使用柱状图就加载bar模块，按需加载
-                            ],
-                            function (ec) {
-                                // 基于准备好的dom，初始化echarts图表
-                                var myChart = ec.init(document.getElementById('mytable1'));
-
-                                var option = {
-                                    tooltip: {
-                                        show: true
-                                    },
-                                    legend: {
-                                        data: ['销量']
-                                    },
-                                    xAxis: [
-                                        {
-                                            type: 'category',
-                                            data: ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"]
-                                        }
-                                    ],
-                                    yAxis: [
-                                        {
-                                            type: 'value'
-                                        }
-                                    ],
-                                    series: [
-                                        {
-                                            "name": "销量",
-                                            "type": "bar",
-                                            "data": [5, 20, 40, 10, 10, 20]
-                                        }
-                                    ]
-                                };
-
-                                // 为echarts对象加载数据
-                                myChart.setOption(option);
-                            }
-                        );
-                    </script>
+            <div class="row">
+                <div id="mytable2" class="col-md-12" style="height:300px;width: 100%">
                 </div>
+                <script type="text/javascript">
 
-                <div class="row">
-                    <div id="mytable2" class="col-md-12" style="height:400px;width: 100%">
-                    </div>
-                    <script type="text/javascript">
+                    // 使用
+                    require(
+                        [
+                            'echarts',
+                            'echarts/chart/bar' // 使用柱状图就加载bar模块，按需加载
+                        ],
+                        function (ec) {
+                            // 基于准备好的dom，初始化echarts图表
+                            var myChart = ec.init(document.getElementById('mytable2'));
 
-                        // 使用
-                        require(
-                            [
-                                'echarts',
-                                'echarts/chart/bar' // 使用柱状图就加载bar模块，按需加载
-                            ],
-                            function (ec) {
-                                // 基于准备好的dom，初始化echarts图表
-                                var myChart = ec.init(document.getElementById('mytable2'));
+                            var option = {
+                                tooltip: {
+                                    show: true
+                                },
+                                legend: {
+                                    data: ['销量']
+                                },
+                                xAxis: [
+                                    {
+                                        type: 'category',
+                                        data: ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"]
+                                    }
+                                ],
+                                yAxis: [
+                                    {
+                                        type: 'value'
+                                    }
+                                ],
+                                series: [
+                                    {
+                                        "name": "销量",
+                                        "type": "bar",
+                                        "data": [5, 20, 40, 10, 10, 20]
+                                    }
+                                ]
+                            };
 
-                                var option = {
-                                    tooltip: {
-                                        show: true
-                                    },
-                                    legend: {
-                                        data: ['销量']
-                                    },
-                                    xAxis: [
-                                        {
-                                            type: 'category',
-                                            data: ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"]
-                                        }
-                                    ],
-                                    yAxis: [
-                                        {
-                                            type: 'value'
-                                        }
-                                    ],
-                                    series: [
-                                        {
-                                            "name": "销量",
-                                            "type": "bar",
-                                            "data": [5, 20, 40, 10, 10, 20]
-                                        }
-                                    ]
-                                };
-
-                                // 为echarts对象加载数据
-                                myChart.setOption(option);
-                            }
-                        );
-                    </script>
-                </div>
+                            // 为echarts对象加载数据
+                            myChart.setOption(option);
+                        }
+                    );
+                </script>
             </div>
         </div>
     </div>
+</div>
 
 
-    <!--<script type="text/javascript">
+<!--<script type="text/javascript">
 
-        /**
-         * 点击导航栏
-         */
+    /**
+     * 点击导航栏
+     */
 
-        $("li[name='navLeft']").on("click", function () {
-            $("li[name='navLeft']").each(function () {
-                if($(this).hasClass('active')) {
-                    $(this).removeClass('active');
-                }
-            });
-            $(this).addClass('active');
+    $("li[name='navLeft']").on("click", function () {
+        $("li[name='navLeft']").each(function () {
+            if($(this).hasClass('active')) {
+                $(this).removeClass('active');
+            }
         });
+        $(this).addClass('active');
+    });
 
-        $('#navLeftHeader').on("click", function () {
-            $("li[name='navLeft']").slideToggle(280)
-        });
+    $('#navLeftHeader').on("click", function () {
+        $("li[name='navLeft']").slideToggle(280)
+    });
 
-    </script>-->
+</script>-->
 
 
 </body>
