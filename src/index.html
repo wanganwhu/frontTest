@@ -630,7 +630,7 @@ $("#refresh").on("click", function () {
         var _yAxis2 = new Array();
         var _legend = new Array();
         for (var i = 0; i<_pointNum; i++) {
-            _legend.push(i);
+            _legend.push(i+1);
             var _temp = _point[i];
             var keys1 = [];
             for (var p1 in _temp) {
@@ -646,13 +646,13 @@ $("#refresh").on("click", function () {
                 _data2.push(accumlate);
             }
             _yAxis.push({
-                name:i,
+                name:i+1,
                 type:'line',
                 stack: '总量',
                 data:_data
             });
             _yAxis2.push({
-                name:i,
+                name:i+1,
                 type:'line',
                 stack: '总量',
                 data:_data2
