@@ -64,6 +64,8 @@
                                 if(mydata.success == 0){
                                     alert("访问服务器成功，但是没有数据或者参数构造出错");
                                 }
+                                var mId = new Array();//监测区域id
+                                var mMap = {};
                                 $.each(mydata.result.sup, function(i,p){
                                     var p1 = "<li id='p"+i+"' style='cursor: pointer;'>"+"<a id='ps"+i+"' href='#' style='color:#ffffff;background-color: #363c3e;border-radius: 0%;'>"+p+"</a>";
                                     $('#parent').append(p1);
@@ -72,19 +74,19 @@
                                             var strs= new Array(); //定义一数组
                                             strs=s.split(","); //字符分割
                                             var temp = strs.toString().split("\"");//字符串提取
-                                            var mId = new Array();//监测区域id
                                             var mName = new Array();//监测区域name
                                             var index = 1;
                                             while (index+4 <= temp.length) {
                                                 mId.push(temp[index]);
                                                 mName.push(temp[index+2]);
+                                                mMap[temp[index+2]] = temp[index];
                                                 index += 4;
                                             }
-
                                             var ms  = "";
                                             $.each(mName, function(k,m){
                                                 if (k == 0) ms+="<ul id='pu"+i+"' class='nav nav-pills nav-stacked'>";
-                                                ms = ms + "<li style='padding-left: 20px;margin-top: 0;background-color: #31b0d5;'><a href='#' style='color:#ffffff;background-color: #31b0d5;border-radius: 0%;'>"+m+"</a></li>";
+                                                ms = ms + "<li style='padding-left: 20px;margin-top: 0;background-color: #31b0d5;' id='map"+mMap[m]+"'>" +
+                                                    "<a href='#' style='color:#ffffff;background-color: #31b0d5;border-radius: 0%;'>"+m+"</a></li>";
                                             });
                                             ms+="</ul>";
                                             $('#p'+i).append(ms);
@@ -93,6 +95,30 @@
                                     $('#parent').append("</li>");
                                     $('#ps'+i).on("click", function () {
                                         $('#pu'+i).slideToggle(280);
+                                    });
+                                });
+                                $.each(mId,function (r,t) {
+                                    $('#map'+ t).on("click", function () {
+                                        var fp =  "{\"id\":"+t+"}";
+
+                                        $.ajax({
+                                            url: "http://47.93.237.6:8080//lidar/getData.jsp",
+                                            type: "POST",
+                                            //dataType: "JSON",
+                                            data: {
+                                                'fname': "\"getRegionDetails\"",
+                                                'fparam':fp
+                                            },
+                                            success: function (data1) {
+                                                alert(data1);
+                                                ///122334
+                                            },
+                                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                                alert("访问服务器失败，请重试");
+                                            },
+                                            timeout:3000
+                                        });
+
                                     });
                                 });
                             },
@@ -139,7 +165,7 @@
             </div>
 
             <div class="row">
-                <div class="col-md-12" style="height: 50px; padding-top: 10px;">
+                <div class="col-md-12" style="height: 100px; padding-top: 10px;">
                     <form class="form-inline">
                         <label>统计图表更新：</label>
                         <select id="type">
@@ -677,6 +703,10 @@ Date.prototype.Format = function(fmt)
 
 
         myChart1.setOption({
+            title : {
+                show: true,
+                text: '形变速度'
+            },
             grid: {
             },
             tooltip : {
@@ -703,6 +733,7 @@ Date.prototype.Format = function(fmt)
                     data : _xAxis,
                     axisLabel:{
                         interval: 0 ,
+                        rotate:45,
                         formatter: function (value, index) {
                             // 格式化成月/日，只在第一个刻度显示年份
                             var date = new Date(value);
@@ -710,7 +741,7 @@ Date.prototype.Format = function(fmt)
                             if (index === 0) {
                                 texts.unshift(date.getYear());
                             }
-                            texts.join('\?');
+                            texts = texts.join('-');
                             var tempMinutes = date.getMinutes();
                             if (tempMinutes === 0){
                                 tempMinutes ="00";
@@ -738,6 +769,10 @@ Date.prototype.Format = function(fmt)
 
         var myChart2 = require('echarts').init(document.getElementById("mytable2"));
         myChart2.setOption({
+            title : {
+                show: true,
+                text: '形变总量'
+            },
             grid: {
             },
             tooltip : {
@@ -764,14 +799,15 @@ Date.prototype.Format = function(fmt)
                     data : _xAxis,
                     axisLabel: {
                         interval: 0,
+                        rotate:45,
                         formatter: function (value, index) {
                             // 格式化成月/日，只在第一个刻度显示年份
                             var date = new Date(value);
-                            var texts = [(date.getDate()), date.getHours()];
+                            var texts = [date.getDate(), date.getHours()];
                             if (index === 0) {
                                 texts.unshift(date.getYear());
                             }
-                            texts.join('/');
+                            texts = texts.join("-");
                             var tempMinutes = date.getMinutes();
                             if (tempMinutes === 0){
                                 tempMinutes ="00";
