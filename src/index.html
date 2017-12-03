@@ -48,7 +48,7 @@
     <div class="row">
         <div class="col-md-2" style="height: 800px;position: relative;">
             <div class="row">
-                <ul id = "parent" class="nav nav-pills nav-stacked"></ul>
+                <ul id="parent" class="nav nav-pills nav-stacked"></ul>
                 <script type="text/javascript">
                     $(document).ready(function () {
                         $.ajax({
@@ -61,45 +61,45 @@
                             },
                             success: function (data1) {
                                 var mydata = JSON.parse(data1);
-                                if(mydata.success == 0){
+                                if (mydata.success == 0) {
                                     alert("访问服务器成功，但是没有数据或者参数构造出错");
                                 }
                                 var mId = new Array();//监测区域id
                                 var mMap = {};
-                                $.each(mydata.result.sup, function(i,p){
-                                    var p1 = "<li id='p"+i+"' style='cursor: pointer;'>"+"<a id='ps"+i+"' href='#' style='color:#ffffff;background-color: #363c3e;border-radius: 0%;'>"+p+"</a>";
+                                $.each(mydata.result.sup, function (i, p) {
+                                    var p1 = "<li id='p" + i + "' style='cursor: pointer;'>" + "<a id='ps" + i + "' href='#' style='color:#ffffff;background-color: #363c3e;border-radius: 0%;'>" + p + "</a>";
                                     $('#parent').append(p1);
-                                    $.each(mydata.result.sub, function(j,s){
-                                        if(i == j){
-                                            var strs= new Array(); //定义一数组
-                                            strs=s.split(","); //字符分割
+                                    $.each(mydata.result.sub, function (j, s) {
+                                        if (i == j) {
+                                            var strs = new Array(); //定义一数组
+                                            strs = s.split(","); //字符分割
                                             var temp = strs.toString().split("\"");//字符串提取
                                             var mName = new Array();//监测区域name
                                             var index = 1;
-                                            while (index+4 <= temp.length) {
+                                            while (index + 4 <= temp.length) {
                                                 mId.push(temp[index]);
-                                                mName.push(temp[index+2]);
-                                                mMap[temp[index+2]] = temp[index];
+                                                mName.push(temp[index + 2]);
+                                                mMap[temp[index + 2]] = temp[index];
                                                 index += 4;
                                             }
-                                            var ms  = "";
-                                            $.each(mName, function(k,m){
-                                                if (k == 0) ms+="<ul id='pu"+i+"' class='nav nav-pills nav-stacked'>";
-                                                ms = ms + "<li style='padding-left: 20px;margin-top: 0;background-color: #31b0d5;' id='map"+mMap[m]+"'>" +
-                                                    "<a href='#' style='color:#ffffff;background-color: #31b0d5;border-radius: 0%;'>"+m+"</a></li>";
+                                            var ms = "";
+                                            $.each(mName, function (k, m) {
+                                                if (k == 0) ms += "<ul id='pu" + i + "' class='nav nav-pills nav-stacked'>";
+                                                ms = ms + "<li style='padding-left: 20px;margin-top: 0;background-color: #31b0d5;' id='map" + mMap[m] + "'>" +
+                                                    "<a href='#' style='color:#ffffff;background-color: #31b0d5;border-radius: 0%;'>" + m + "</a></li>";
                                             });
-                                            ms+="</ul>";
-                                            $('#p'+i).append(ms);
+                                            ms += "</ul>";
+                                            $('#p' + i).append(ms);
                                         }
                                     });
                                     $('#parent').append("</li>");
-                                    $('#ps'+i).on("click", function () {
-                                        $('#pu'+i).slideToggle(280);
+                                    $('#ps' + i).on("click", function () {
+                                        $('#pu' + i).slideToggle(280);
                                     });
                                 });
-                                $.each(mId,function (r,t) {
-                                    $('#map'+ t).on("click", function () {
-                                        var fp =  "{\"id\":"+t+"}";
+                                $.each(mId, function (r, t) {
+                                    $('#map' + t).on("click", function () {
+                                        var fp = "{\"id\":" + t + "}";
 
                                         $.ajax({
                                             url: "http://47.93.237.6:8080//lidar/getData.jsp",
@@ -107,22 +107,41 @@
                                             //dataType: "JSON",
                                             data: {
                                                 'fname': "\"getRegionDetails\"",
-                                                'fparam':fp
+                                                'fparam': fp
                                             },
                                             success: function (data1) {
-                                                alert(data1);
-                                                ///122334
+                                                var mydata = JSON.parse(data1);
+                                                if (mydata.success == 0) {
+                                                    alert("访问服务器成功，但是没有数据或者参数构造出错");
+                                                }
+                                                var geometryType = mydata.result.type;
+                                                var geometryData = new Array();
+                                                geometryData = mydata.result.geom;
+                                                switch (geometryType) {
+                                                    case "ST_Polygon" :
+                                                        geometryType = "POLYGON";
+                                                        break;
+                                                    case "ST_Point" :
+                                                        geometryType = "MULTIPOINT";
+                                                        break;
+                                                    case "ST_LineString" :
+                                                        geometryType = "LINESTRING";
+                                                        break;
+                                                    default:
+                                                        return;
+                                                }
+                                                drawByPoints(geometryType,geometryData);
                                             },
                                             error: function (XMLHttpRequest, textStatus, errorThrown) {
                                                 alert("访问服务器失败，请重试");
                                             },
-                                            timeout:3000
+                                            timeout: 3000
                                         });
 
                                     });
                                 });
                             },
-                            timeout:3000
+                            timeout: 3000
                         })
                     })
                 </script>
@@ -139,7 +158,7 @@
                         <div class="row">
                             <div class="col-md-12" id="location" style="height: 20px"></div>
                             <div class="col-md-12" id="scale" style="height: 20px"></div>
-                            <div  class="col-md-12" id="nodelist" style="height: 50px"></div>
+                            <div class="col-md-12" id="nodelist" style="height: 50px"></div>
                         </div>
                     </div>
 
@@ -160,11 +179,6 @@
 
         <div class="col-md-4">
             <div class="row">
-                <div id="mytable1" class="col-md-12" style="min-height:300px;width: 100%">
-                </div>
-            </div>
-
-            <div class="row">
                 <div class="col-md-12" style="height: 100px; padding-top: 10px;">
                     <form class="form-inline">
                         <label>统计图表更新：</label>
@@ -182,7 +196,10 @@
                     </form>
                 </div>
             </div>
-
+            <div class="row">
+                <div id="mytable1" class="col-md-12" style="min-height:300px;width: 100%">
+                </div>
+            </div>
             <div class="row">
                 <div id="mytable2" class="col-md-12" style="min-height:300px;padding-top: 10px;width: 100%">
                 </div>
@@ -207,9 +224,11 @@ var mousePositionControl = new ol.control.MousePosition({
 });
 //画图用的source和vector
 var source = new ol.source.Vector({wrapX: false});
+
 var vector = new ol.layer.Vector({
     source: source
 });
+
 
 var background = new ol.layer.Tile({ //tiled map
     visible: true,
@@ -260,6 +279,7 @@ var projection = new ol.proj.Projection({
     axisOrientation: 'neu',
     global: false
 });
+
 
 var map = new ol.Map({
     controls: ol.control.defaults({
@@ -343,7 +363,7 @@ function addInteraction() {
  */
 typeSelect.onchange = function () {
     removeAllFeature();
-    old_feature=null;
+    old_feature = null;
     map.removeInteraction(draw);
     addInteraction();
 };
@@ -367,27 +387,24 @@ function removeAllFeature() {
 </script>
 
 
-
-
 <script type="text/javascript">//地图刷新
 
 //日期格式函数
-Date.prototype.Format = function(fmt)
-{ //author: meizz
+Date.prototype.Format = function (fmt) { //author: meizz
     var o = {
-        "M+" : this.getMonth()+1,                 //月份
-        "d+" : this.getDate(),                    //日
-        "h+" : this.getHours(),                   //小时
-        "m+" : this.getMinutes(),                 //分
-        "s+" : this.getSeconds(),                 //秒
-        "q+" : Math.floor((this.getMonth()+3)/3), //季度
-        "S"  : this.getMilliseconds()             //毫秒
+        "M+": this.getMonth() + 1,                 //月份
+        "d+": this.getDate(),                    //日
+        "h+": this.getHours(),                   //小时
+        "m+": this.getMinutes(),                 //分
+        "s+": this.getSeconds(),                 //秒
+        "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+        "S": this.getMilliseconds()             //毫秒
     };
-    if(/(y+)/.test(fmt))
-        fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));
-    for(var k in o)
-        if(new RegExp("("+ k +")").test(fmt))
-            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
+    if (/(y+)/.test(fmt))
+        fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+    for (var k in o)
+        if (new RegExp("(" + k + ")").test(fmt))
+            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
     return fmt;
 };
 
@@ -431,41 +448,41 @@ Date.prototype.Format = function(fmt)
             var myChart = ec.init(document.getElementById('mytable1'));
 
             var option = {
-                tooltip : {
+                tooltip: {
                     trigger: 'axis'
                 },
                 legend: {
-                    data:['1']
+                    data: ['1']
                 },
                 toolbox: {
-                    show : false,
-                    feature : {
-                        mark : {show: true},
-                        dataView : {show: true, readOnly: false},
-                        magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
-                        restore : {show: true},
-                        saveAsImage : {show: true}
+                    show: false,
+                    feature: {
+                        mark: {show: true},
+                        dataView: {show: true, readOnly: false},
+                        magicType: {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+                        restore: {show: true},
+                        saveAsImage: {show: true}
                     }
                 },
-                calculable : true,
-                xAxis : [
+                calculable: true,
+                xAxis: [
                     {
-                        type : 'category',
-                        boundaryGap : false,
-                        data : ['1','2','3','4','5','6','7']
+                        type: 'category',
+                        boundaryGap: false,
+                        data: ['1', '2', '3', '4', '5', '6', '7']
                     }
                 ],
-                yAxis : [
+                yAxis: [
                     {
-                        type : 'value'
+                        type: 'value'
                     }
                 ],
-                series : [
+                series: [
                     {
-                        name:'0',
-                        type:'line',
+                        name: '0',
+                        type: 'line',
                         stack: '总量',
-                        data:[120, 132, 101, 134, 90, 230, 210]
+                        data: [120, 132, 101, 134, 90, 230, 210]
                     }
                 ]
             };
@@ -485,41 +502,41 @@ Date.prototype.Format = function(fmt)
             var myChart = ec.init(document.getElementById('mytable2'));
 
             var option = {
-                tooltip : {
+                tooltip: {
                     trigger: 'axis'
                 },
                 legend: {
-                    data:['1']
+                    data: ['1']
                 },
                 toolbox: {
-                    show : false,
-                    feature : {
-                        mark : {show: true},
-                        dataView : {show: true, readOnly: false},
-                        magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
-                        restore : {show: true},
-                        saveAsImage : {show: true}
+                    show: false,
+                    feature: {
+                        mark: {show: true},
+                        dataView: {show: true, readOnly: false},
+                        magicType: {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+                        restore: {show: true},
+                        saveAsImage: {show: true}
                     }
                 },
-                calculable : true,
-                xAxis : [
+                calculable: true,
+                xAxis: [
                     {
-                        type : 'category',
-                        boundaryGap : false,
-                        data : ['1','2','3','4','5','6','7']
+                        type: 'category',
+                        boundaryGap: false,
+                        data: ['1', '2', '3', '4', '5', '6', '7']
                     }
                 ],
-                yAxis : [
+                yAxis: [
                     {
-                        type : 'value'
+                        type: 'value'
                     }
                 ],
-                series : [
+                series: [
                     {
-                        name:'0',
-                        type:'line',
+                        name: '0',
+                        type: 'line',
                         stack: '总量',
-                        data:[120, 132, 101, 134, 90, 230, 210]
+                        data: [120, 132, 101, 134, 90, 230, 210]
                     }
                 ]
             };
@@ -534,95 +551,104 @@ Date.prototype.Format = function(fmt)
 
     function changeLineGraph() {
 
-        var mfname = "";
+        var mfname = "";//查询数据用于更新折线图
         var mfparam = "";
+
+        var mfname = "\addNewRegion";//用于添加监控区域
+        var mfparam = "";
+
         var mbeginTime = new Date($("#pointDate1").val()).Format("yyyy-MM-dd hh:mm");
         var mendTime = new Date($("#pointDate2").val()).Format("yyyy-MM-dd hh:mm");
-        mfparam = mfparam+"{\"from_time\":\""+mbeginTime+"\",\"to_time\":\""+mendTime+"\",\"points\":";
+        mfparam = mfparam + "{\"from_time\":\"" + mbeginTime + "\",\"to_time\":\"" + mendTime + "\",\"points\":";
 
         var selectType = $("#type").val();
 
-        var mgeomtry =  "";
+        var mgeomtry = "";
 
-        switch(selectType)
-        {
+        switch (selectType) {
             case "None":
+                var features = source.getFeatures();
+                if( features == null){
+                    return;
+                }
                 return;
+                //////////////////////////////////////////////////////////////////////////////////
+
             case "Point":
                 mfname = "getDNforpoints";
                 var features = source.getFeatures();
                 if (features != null && features.length > 0) {
                     var count = 1;
-                    mgeomtry = mgeomtry+"{";
-                    for (count;count<features.length;++count) {
-                        var geom = features[count-1].getGeometry();//Geometry
+                    mgeomtry = mgeomtry + "{";
+                    for (count; count < features.length; ++count) {
+                        var geom = features[count - 1].getGeometry();//Geometry
                         var lonlats = geom.A;
-                        mgeomtry = mgeomtry+"\"" + count + "\"" + ":"+ "\""+
-                            Math.round(lonlats[0]) + "," + Math.round(lonlats[1])+ "\"" + ",";
+                        mgeomtry = mgeomtry + "\"" + count + "\"" + ":" + "\"" +
+                            Math.round(lonlats[0]) + "," + Math.round(lonlats[1]) + "\"" + ",";
                     }
-                    var geom = features[features.length-1].getGeometry();//Geometry
+                    var geom = features[features.length - 1].getGeometry();//Geometry
                     var lonlats = geom.A;
-                    mgeomtry = mgeomtry+"\"" + features.length + "\"" + ":"+ "\""+
-                        Math.round(lonlats[0]) + "," + Math.round(lonlats[1])+ "\"";
+                    mgeomtry = mgeomtry + "\"" + features.length + "\"" + ":" + "\"" +
+                        Math.round(lonlats[0]) + "," + Math.round(lonlats[1]) + "\"";
                 }
-                mfparam = mfparam + mgeomtry+"}}";
+                mfparam = mfparam + mgeomtry + "}}";
                 alert(mfparam);
                 break;
 
             case "LineString":
                 mfname = "\"L_getdnforline\"";
                 var features = source.getFeatures();
-                mgeomtry+="[";
+                mgeomtry += "[";
                 if (features != null && features.length > 0) {
                     for (x in features) {
                         var geom = features[x].getGeometry();//Geometry
                         var lonlats = geom.A;
 
-                        for (var count = 0;count<lonlats.length-1; ++count){
-                            mgeomtry = mgeomtry + Math.round(lonlats[count])+ ",";
+                        for (var count = 0; count < lonlats.length - 1; ++count) {
+                            mgeomtry = mgeomtry + Math.round(lonlats[count]) + ",";
                         }
-                        mgeomtry = mgeomtry + Math.round(lonlats[lonlats.length-1]) +"]";
+                        mgeomtry = mgeomtry + Math.round(lonlats[lonlats.length - 1]) + "]";
                     }
                 }
-                mfparam = mfparam + mgeomtry+"}";
+                mfparam = mfparam + mgeomtry + "}";
                 alert(mfparam);
                 break;
 
             case "Polygon":
                 mfname = "getDNforPoly";
                 var features = source.getFeatures();
-                mgeomtry+="[";
+                mgeomtry += "[";
                 if (features != null && features.length > 0) {
                     for (x in features) {
                         var geom = features[x].getGeometry();//Geometry
                         var lonlats = geom.A;
 
-                        for (var count = 0;count<lonlats.length-1; ++count){
-                            mgeomtry = mgeomtry + Math.round(lonlats[count])+ ",";
+                        for (var count = 0; count < lonlats.length - 1; ++count) {
+                            mgeomtry = mgeomtry + Math.round(lonlats[count]) + ",";
                         }
-                        mgeomtry = mgeomtry + Math.round(lonlats[lonlats.length-1]) +"]";
+                        mgeomtry = mgeomtry + Math.round(lonlats[lonlats.length - 1]) + "]";
                     }
                 }
-                mfparam = mfparam + mgeomtry+"}";
+                mfparam = mfparam + mgeomtry + "}";
                 alert(mfparam);
                 break;
 
             case "Circle":
                 mfname = "getDNforCircle";
                 var features = source.getFeatures();
-                mgeomtry+="{\"center\":";
+                mgeomtry += "{\"center\":";
                 if (features != null && features.length > 0) {
                     for (x in features) {
                         var geom = features[x].getGeometry();//Geometry
                         var lonlats = geom.A;
-                        mgeomtry = mgeomtry + "\"" + Math.round(lonlats[0])+","+ Math.round(lonlats[1])
-                            +"\"" +",\"radius\":";
+                        mgeomtry = mgeomtry + "\"" + Math.round(lonlats[0]) + "," + Math.round(lonlats[1])
+                            + "\"" + ",\"radius\":";
                         var mdis = Math.round(Math.sqrt(
-                            Math.pow(lonlats[0]-lonlats[2],2)+Math.pow(lonlats[1]-lonlats[3],2)));
+                            Math.pow(lonlats[0] - lonlats[2], 2) + Math.pow(lonlats[1] - lonlats[3], 2)));
                         mgeomtry = mgeomtry + mdis;
                     }
                 }
-                mfparam = mfparam + mgeomtry+"}}";
+                mfparam = mfparam + mgeomtry + "}}";
                 alert(mfparam);
                 break;
             default:
@@ -639,17 +665,17 @@ Date.prototype.Format = function(fmt)
             //dataType: "JSON",
             data: {
                 'fname': mfname,
-                'fparam':mfparam
+                'fparam': mfparam
             },
             success: function (data1) {
                 xAxis.splice(0, xAxis.length);
                 yAxis.splice(0, yAxis.length);
                 var mydata = JSON.parse(data1);
                 alert(data1);
-                if(mydata.success == 0){
+                if (mydata.success == 0) {
                     alert("访问服务器成功，但是没有数据或者参数构造出错");
                 }
-                $.each(mydata.result.time_list, function (index,item) {
+                $.each(mydata.result.time_list, function (index, item) {
                     xAxis.push(new Date(item).Format("yyyy-MM-dd hh:mm"));
                 });
                 var num = parseInt(mydata.result.num_pnt);
@@ -659,7 +685,7 @@ Date.prototype.Format = function(fmt)
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 alert("访问服务器失败，请重试");
             },
-            timeout:3000
+            timeout: 3000
         });
     }
 
@@ -671,80 +697,79 @@ Date.prototype.Format = function(fmt)
         var _yAxis = new Array();
         var _yAxis2 = new Array();
         var _legend = new Array();
-        for (var i = 0; i<_pointNum; i++) {
-            _legend.push(i+1);
+        for (var i = 0; i < _pointNum; i++) {
+            _legend.push(i + 1);
             var _temp = _point[i];
             var keys1 = [];
             for (var p1 in _temp) {
                 if (_temp.hasOwnProperty(p1))
                     keys1.push(p1);
             }
-            var _data =eval("_temp["+keys1[0]+"]");
+            var _data = eval("_temp[" + keys1[0] + "]");
             var _data2 = new Array();
             var accumlate = _data[0];
             _data2.push(accumlate);
-            for (var j = 1; j<_data.length; j++) {
-                accumlate+= _data[j];
+            for (var j = 1; j < _data.length; j++) {
+                accumlate += _data[j];
                 _data2.push(accumlate);
             }
             _yAxis.push({
-                name:i+1,
-                type:'line',
+                name: i + 1,
+                type: 'line',
                 //stack: '总量',
-                data:_data
+                data: _data
             });
             _yAxis2.push({
-                name:i+1,
-                type:'line',
+                name: i + 1,
+                type: 'line',
                 //stack: '总量',
-                data:_data2
+                data: _data2
             });
         }
 
 
         myChart1.setOption({
-            title : {
+            title: {
                 show: true,
                 text: '形变速度'
             },
-            grid: {
-            },
-            tooltip : {
+            grid: {},
+            tooltip: {
                 trigger: 'axis'
             },
             legend: {
-                data:_legend
+                data: _legend
             },
             toolbox: {
-                show : false,
-                feature : {
-                    mark : {show: true},
-                    dataView : {show: true, readOnly: false},
-                    magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
-                    restore : {show: true},
-                    saveAsImage : {show: true}
+                show: false,
+                feature: {
+                    mark: {show: true},
+                    dataView: {show: true, readOnly: false},
+                    magicType: {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+                    restore: {show: true},
+                    saveAsImage: {show: true}
                 }
             },
-            calculable : true,
-            xAxis : [
+            calculable: true,
+            xAxis: [
                 {
-                    type : 'category',
-                    boundaryGap : false,
-                    data : _xAxis,
-                    axisLabel:{
-                        interval: 0 ,
-                        rotate:45,
+                    type: 'category',
+                    boundaryGap: false,
+                    data: _xAxis,
+                    axisLabel: {
+                        interval: 0,
+                        rotate: 45,
                         formatter: function (value, index) {
                             // 格式化成月/日，只在第一个刻度显示年份
                             var date = new Date(value);
-                            var texts = [(date.getDate()),date.getHours()];
+                            var texts = [(date.getDate()), date.getHours()];
                             if (index === 0) {
                                 texts.unshift(date.getYear());
                             }
                             texts = texts.join('-');
                             var tempMinutes = date.getMinutes();
-                            if (tempMinutes === 0){
-                                tempMinutes ="00";
+                            if (tempMinutes === 0) {
+                                tempMinutes = "00";
                             }
                             texts = [texts, tempMinutes];
                             return texts.join(':');
@@ -753,53 +778,52 @@ Date.prototype.Format = function(fmt)
                 }
             ],
 
-            yAxis : [
+            yAxis: [
                 {
-                    type : 'value',
-                    min : function(value) {
+                    type: 'value',
+                    min: function (value) {
                         return -10;
                     },
-                    max : function(value) {
+                    max: function (value) {
                         return 10;
                     }
                 }
             ],
-            series : _yAxis
+            series: _yAxis
         });
 
         var myChart2 = require('echarts').init(document.getElementById("mytable2"));
         myChart2.setOption({
-            title : {
+            title: {
                 show: true,
                 text: '形变总量'
             },
-            grid: {
-            },
-            tooltip : {
+            grid: {},
+            tooltip: {
                 trigger: 'axis'
             },
             legend: {
-                data:_legend
+                data: _legend
             },
             toolbox: {
-                show : false,
-                feature : {
-                    mark : {show: true},
-                    dataView : {show: true, readOnly: false},
-                    magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
-                    restore : {show: true},
-                    saveAsImage : {show: true}
+                show: false,
+                feature: {
+                    mark: {show: true},
+                    dataView: {show: true, readOnly: false},
+                    magicType: {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+                    restore: {show: true},
+                    saveAsImage: {show: true}
                 }
             },
-            calculable : true,
-            xAxis : [
+            calculable: true,
+            xAxis: [
                 {
-                    type : 'category',
-                    boundaryGap : false,
-                    data : _xAxis,
+                    type: 'category',
+                    boundaryGap: false,
+                    data: _xAxis,
                     axisLabel: {
                         interval: 0,
-                        rotate:45,
+                        rotate: 45,
                         formatter: function (value, index) {
                             // 格式化成月/日，只在第一个刻度显示年份
                             var date = new Date(value);
@@ -809,8 +833,8 @@ Date.prototype.Format = function(fmt)
                             }
                             texts = texts.join("-");
                             var tempMinutes = date.getMinutes();
-                            if (tempMinutes === 0){
-                                tempMinutes ="00";
+                            if (tempMinutes === 0) {
+                                tempMinutes = "00";
                             }
                             texts = [texts, tempMinutes];
                             return texts.join(':');
@@ -818,18 +842,18 @@ Date.prototype.Format = function(fmt)
                     }
                 }
             ],
-            yAxis : [
+            yAxis: [
                 {
-                    type : 'value',
-                    min : function(value) {
+                    type: 'value',
+                    min: function (value) {
                         return -10;
                     },
-                    max : function(value) {
+                    max: function (value) {
                         return 10;
                     }
                 }
             ],
-            series : _yAxis2
+            series: _yAxis2
         });
     }
 
@@ -845,13 +869,13 @@ Date.prototype.Format = function(fmt)
             //dataType: "JSON",
             data: {
                 'fname': "getDNforpoints",
-                'fparam':"{\"from_time\":\"2017-11-08 03:00\",\"to_time\":\"2017-11-08 06:30\",\"points\":{\"1\":\"32,43\",\"2\":\"38,83\",\"3\":\"12,64\"}}"
+                'fparam': "{\"from_time\":\"2017-11-08 03:00\",\"to_time\":\"2017-11-08 06:30\",\"points\":{\"1\":\"32,43\",\"2\":\"38,83\",\"3\":\"12,64\"}}"
             },
             success: function (data1) {
                 xAxis.splice(0, xAxis.length);
                 yAxis.splice(0, yAxis.length);
                 var mydata = JSON.parse(data1);
-                $.each(mydata.result.time_list, function (index,item) {
+                $.each(mydata.result.time_list, function (index, item) {
                     xAxis.push(new Date(item).Format("yyyy-MM-dd hh:mm"));
                 });
                 var num = parseInt(mydata.result.num_pnt);
@@ -861,9 +885,54 @@ Date.prototype.Format = function(fmt)
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 alert("访问服务器成功，但是没有数据");
             },
-            timeout:3000
+            timeout: 3000
         });
     });
+</script>
+
+<script type="text/javascript">//根据坐标加载图形
+function drawByPoints(geometryTye,points) {
+    var wkt=geometryTye;
+    if(geometryTye == "POLYGON") {
+        wkt += "((";
+    } else {
+        wkt += "("
+    }
+
+    var length=points.length;
+    for(var i=0;i<length;i=i+2)
+    {
+        wkt+=points[i]+" "+points[i+1];
+        if(i!=length-2)
+        {
+            wkt+=",";
+        }
+    }
+    if(geometryTye == "POLYGON") {
+        wkt += "))";
+    } else {
+        wkt += ")"
+    }
+    var format = new ol.format.WKT();
+    var feature = format.readFeature(wkt, {
+        dataProjection: 'EPSG:404000',
+        featureProjection: 'EPSG:404000'
+    });
+    source.clear();
+    source.addFeature(feature);
+    source.refresh();
+    /*var myVector = new ol.layer.Vector({
+        source: source
+    });
+    map.addLayer(myVector);*/
+    /*//source.clear();
+    source.addFeature(polygon);
+    //source.refresh();
+    //source.changed();
+    //map.updateSize();
+    source.dispatchChangeEvent();
+    map.updateSize();*/
+}
 </script>
 
 </body>
