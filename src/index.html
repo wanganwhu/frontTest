@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>形变观测</title>
 
     <meta name="description" content="雷达形变观测">
@@ -13,10 +12,57 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
     <link rel="stylesheet" href="https://openlayers.org/en/v4.4.2/css/ol.css" type="text/css">
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.0/css/bootstrap.css" rel="stylesheet">
     <style>
-        .map {
-            height: 400px;
-            width: 100%;
+        .col-md-6 {
+            padding-left: 2px;
+            padding-right: 2px;
+        }
+        .ol-popup {
+            position: absolute;
+            background-color: white;
+            -webkit-filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
+            filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #cccccc;
+            bottom: 12px;
+            left: -50px;
+        }
+
+        .ol-popup:after, .ol-popup:before {
+            top: 100%;
+            border: solid transparent;
+            content: " ";
+            height: 0;
+            width: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .ol-popup:after {
+            border-top-color: white;
+            border-width: 10px;
+            left: 48px;
+            margin-left: -10px;
+        }
+
+        .ol-popup:before {
+            border-top-color: #cccccc;
+            border-width: 11px;
+            left: 48px;
+            margin-left: -11px;
+        }
+
+        .ol-popup-closer {
+            text-decoration: none;
+            position: absolute;
+            top: 2px;
+            right: 8px;
+        }
+
+        .ol-popup-closer:after {
+            content: "✖";
         }
     </style>
     <script src="https://openlayers.org/en/v4.4.2/build/ol.js" type="text/javascript"></script>
@@ -30,9 +76,19 @@
             }
         });
     </script>
-    <script src="js/jquery.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
+
+
+    <!--<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.js"></script>-->
+    <script src="http://cdn.bootcss.com/jquery/1.9.1/jquery.min.js"></script>
+    <!--<script src="http://cdn.bootcss.com/twitter-bootstrap/2.2.2/bootstrap.min.js"></script>-->
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
     <script src="js/scripts.js"></script>
+
+    <!-- Le styles -->
+    <!--<link href="http://cdn.bootcss.com/twitter-bootstrap/2.2.2/css/bootstrap.min.css" rel="stylesheet">-->
+    <!--<link href="http://cdn.bootcss.com/twitter-bootstrap/2.2.2/css/bootstrap-responsive.min.css" rel="stylesheet">-->
+    <link href="css/datetimepicker.css" rel="stylesheet">
 
     <style type="text/css">
 
@@ -46,168 +102,289 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-2" style="height: 800px;position: relative;">
+        <div class="col-md-12">
+            <nav class="navbar navbar-default" role="navigation">
+                <div class="navbar-header">
+
+                    <button type="button" class="navbar-toggle" data-toggle="collapse"
+                            data-target="#bs-example-navbar-collapse-1">
+                        <span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span
+                            class="icon-bar"></span><span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">首页</a>
+                </div>
+
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <!--<ul class="nav navbar-nav">
+                        <li class="active">
+                            <a href="#">Link</a>
+                        </li>
+                        <li>
+                            <a href="#">Link</a>
+                        </li>
+                    </ul>-->
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">账户管理<strong
+                                    class="caret"></strong></a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a href="#">Action</a>
+                                </li>
+                                <li>
+                                    <a href="#">Another action</a>
+                                </li>
+                                <li>
+                                    <a href="#">Something else here</a>
+                                </li>
+                                <li class="divider">
+                                </li>
+                                <li>
+                                    <a href="#">Separated link</a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-2" style="height: 100%;position: relative;background-color: #ffffff;box-shadow:
+         inset 1px -1px 1px #444, inset -1px 1px 1px #444;">
             <div class="row">
                 <ul id="parent" class="nav nav-pills nav-stacked"></ul>
-                <script type="text/javascript">
-                    $(document).ready(function () {
-                        $.ajax({
-                            url: "http://47.93.237.6:8080//lidar/getData.jsp",
-                            type: "POST",
-                            //dataType: "JSON",
-                            data: {
-                                'fname': '"getTreeTitle"',
-                                'fparam': '{}'
-                            },
-                            success: function (data1) {
-                                var mydata = JSON.parse(data1);
-                                if (mydata.success == 0) {
-                                    alert("访问服务器成功，但是没有数据或者参数构造出错");
-                                }
-                                var mId = new Array();//监测区域id
-                                var mMap = {};
-                                $.each(mydata.result.sup, function (i, p) {
-                                    var p1 = "<li id='p" + i + "' style='cursor: pointer;'>" + "<a id='ps" + i + "' href='#' style='color:#ffffff;background-color: #363c3e;border-radius: 0%;'>" + p + "</a>";
-                                    $('#parent').append(p1);
-                                    $.each(mydata.result.sub, function (j, s) {
-                                        if (i == j) {
-                                            var strs = new Array(); //定义一数组
-                                            strs = s.split(","); //字符分割
-                                            var temp = strs.toString().split("\"");//字符串提取
-                                            var mName = new Array();//监测区域name
-                                            var index = 1;
-                                            while (index + 4 <= temp.length) {
-                                                mId.push(temp[index]);
-                                                mName.push(temp[index + 2]);
-                                                mMap[temp[index + 2]] = temp[index];
-                                                index += 4;
-                                            }
-                                            var ms = "";
-                                            $.each(mName, function (k, m) {
-                                                if (k == 0) ms += "<ul id='pu" + i + "' class='nav nav-pills nav-stacked'>";
-                                                ms = ms + "<li style='padding-left: 20px;margin-top: 0;background-color: #31b0d5;' id='map" + mMap[m] + "'>" +
-                                                    "<a href='#' style='color:#ffffff;background-color: #31b0d5;border-radius: 0%;'>" + m + "</a></li>";
-                                            });
-                                            ms += "</ul>";
-                                            $('#p' + i).append(ms);
-                                        }
-                                    });
-                                    $('#parent').append("</li>");
-                                    $('#ps' + i).on("click", function () {
-                                        $('#pu' + i).slideToggle(280);
-                                    });
-                                });
-                                $.each(mId, function (r, t) {
-                                    $('#map' + t).on("click", function () {
-                                        var fp = "{\"id\":" + t + "}";
-
-                                        $.ajax({
-                                            url: "http://47.93.237.6:8080//lidar/getData.jsp",
-                                            type: "POST",
-                                            //dataType: "JSON",
-                                            data: {
-                                                'fname': "\"getRegionDetails\"",
-                                                'fparam': fp
-                                            },
-                                            success: function (data1) {
-                                                var mydata = JSON.parse(data1);
-                                                if (mydata.success == 0) {
-                                                    alert("访问服务器成功，但是没有数据或者参数构造出错");
-                                                }
-                                                var geometryType = mydata.result.type;
-                                                var geometryData = new Array();
-                                                geometryData = mydata.result.geom;
-                                                switch (geometryType) {
-                                                    case "ST_Polygon" :
-                                                        geometryType = "POLYGON";
-                                                        break;
-                                                    case "ST_Point" :
-                                                        geometryType = "MULTIPOINT";
-                                                        break;
-                                                    case "ST_LineString" :
-                                                        geometryType = "LINESTRING";
-                                                        break;
-                                                    default:
-                                                        return;
-                                                }
-                                                drawByPoints(geometryType,geometryData);
-                                            },
-                                            error: function (XMLHttpRequest, textStatus, errorThrown) {
-                                                alert("访问服务器失败，请重试");
-                                            },
-                                            timeout: 3000
-                                        });
-
-                                    });
-                                });
-                            },
-                            timeout: 3000
-                        })
-                    })
-                </script>
-
             </div>
 
         </div>
 
-        <div class="col-md-6">
-            <div class="row">
-                <div id=map class="col-md-12" style="height: 550px"></div>
-                <div id="wrapper" class="col-md-12">
-                    <div class="col-md-12" style="height: 300px;">
-                        <div class="row">
-                            <div class="col-md-12" id="location" style="height: 20px"></div>
-                            <div class="col-md-12" id="scale" style="height: 20px"></div>
-                            <div class="col-md-12" id="nodelist" style="height: 50px"></div>
-                        </div>
-                    </div>
-
-                    <!--查询地图中形变图层
-                    <div class="col-md-6" style="height: 300px;">
-                        <div class="row">
-                            <div class="col-md-12">
-                                地图查询：<br>
-                                开始时间：<input id = map_begin_date type="datetime-local" name="begin_date"/><br>
-                                结束时间：<input id = map_end_date type="datetime-local" name="end_date"/><br>
-                                <button id = "refresh" type="button">查询</button>
-                            </div>
-                        </div>
-                    </div>-->
+        <div class="col-md-6" style="height: 100%;position: relative">
+            <div id="map"
+                 style="height: 400px;width: 100%;box-shadow:inset 1px -1px 1px #444, inset -1px 1px 1px #444;">
+                <div id="popup" class="ol-popup">
+                    <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+                    <div id="popup-content" style="max-height:250px;"></div>
                 </div>
             </div>
+            <div class="col-md-5" style="height: 30px">
+                <label>地图查询：</label>
+            </div>
+            <div class="col-md-3" id="scale" style="height: 30px"></div>
+            <div class="col-md-4" id="location" style="height: 30px"></div>
+            <div class="row">
+                <div class="col-md-12">
+                    <!--;地图查询开始时间<-->
+
+                    <div class="col-md-6">
+                        <div class="input-group date form_datetime" >
+                            <span class="input-group-addon">起始时间</span>
+                            <input type="text" id="map_begin_time" value="2017-11-07 04:00" class="form-control">
+                            <div class="input-group-btn">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="button" id="btn_del">
+                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                    </button>
+                                </span>
+                            </div>
+                            <span class="add-on"><i class="icon-calendar"></i></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group date form_datetime">
+                            <span class="input-group-addon">终止时间</span>
+                            <input type="text" id="map_end_time" value="2017-11-08 04:00"
+                                   class="form-control">
+                            <div class="input-group-btn">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="button" id="btn_de2">
+                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                    </button>
+                                </span>
+                            </div>
+                            <span class="add-on"><i class="icon-calendar"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-4" style="height: 100%;position: relative">
             <div class="row">
-                <div class="col-md-12" style="height: 100px; padding-top: 10px;">
-                    <form class="form-inline">
-                        <label>统计图表更新：</label>
+                <div class="col-md-12" style="height: 70px;">
+                    <div class="row" style = "padding-left: 5px">
+
+                        <label>统计区域选择：</label>
                         <select id="type">
                             <option value="None">None</option>
                             <option value="Point">Point</option>
                             <option value="LineString">LineString</option>
                             <option value="Polygon">Polygon</option>
                             <option value="Circle">Circle</option>
-                        </select><br>
-                        开始时间<input type="datetime-local" id="pointDate1"/>
-                        结束时间<input type="datetime-local" id="pointDate2"/>
-                        <input type="button" value="查询" id="searchPoint"/>
-
-                    </form>
+                        </select>
+                    </div>
+                    <!--开始时间<input type="datetime-local" id="pointDate1"/>
+                    结束时间<input type="datetime-local" id="pointDate2"/>-->
+                    <div class="row">
+                        <!--;折线图查询<-->
+                        <div class="col-md-6">
+                            <div class="input-group date form_datetime">
+                                <input type="text" id="pointDate1" value="2017-11-08 03:00" class="form-control">
+                                <div class="input-group-btn">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" type="button" id="btn_de3">
+                                            <span class="glyphicon glyphicon-remove"
+                                                  aria-hidden="true"></span>
+                                        </button>
+                                    </span>
+                                </div>
+                                <span class="add-on"><i class="icon-calendar"></i></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group date form_datetime">
+                                <input type="text" id="pointDate2" value="2017-11-08 06:30" class="form-control">
+                                <div class="input-group-btn">
+                                                        <span class="input-group-btn">
+                                                            <button class="btn btn-default" type="button" id="btn_de4">
+                                                                <span class="glyphicon glyphicon-remove"
+                                                                      aria-hidden="true"></span>
+                                                            </button>
+                                                        </span>
+                                </div>
+                                <span class="add-on"><i class="icon-calendar"></i></span>
+                            </div>
+                        </div>
+                        <!--<div class="col-md-2 col-lg-2 col-sm-2">
+                            <input type="button" value="查询" id="searchPoint"/>
+                        </div>-->
+                    </div>
                 </div>
             </div>
             <div class="row">
-                <div id="mytable1" class="col-md-12" style="min-height:300px;width: 100%">
+                <div id="mytable1" style="min-height:230px; width: 100%">
                 </div>
             </div>
             <div class="row">
-                <div id="mytable2" class="col-md-12" style="min-height:300px;padding-top: 10px;width: 100%">
+                <div id="mytable2"  style="min-height:230px;padding-top: 10px;width: 100%">
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<script type="text/javascript">//树形菜单
+$(document).ready(function () {
+    $.ajax({
+        url: "http://47.93.237.6:8080//lidar/getData.jsp",
+        type: "POST",
+        //dataType: "JSON",
+        data: {
+            'fname': '"getTreeTitle"',
+            'fparam': '{}'
+        },
+        success: function (data1) {
+            var mydata = JSON.parse(data1);
+            if (mydata.success == 0) {
+                alert("访问服务器成功，但是没有数据或者参数构造出错");
+            }
+            var mId = new Array();//监测区域id
+            var mIdFlag = new Array();//按钮状态数组
+            var mMap = {};
+            $.each(mydata.result.sup, function (i, p) {
+                var p1 = "<li id='p" + i + "' style='cursor: pointer;'>" + "<a id='ps" + i + "' href='#' style='color:#ffffff;background-color: #363c3e;border-radius: 0%;'>" + p + "</a>";
+                $('#parent').append(p1);
+                $.each(mydata.result.sub, function (j, s) {
+                    if (i == j) {
+                        var strs = new Array(); //定义一数组
+                        strs = s.split(","); //字符分割
+                        var temp = strs.toString().split("\"");//字符串提取
+                        var mName = new Array();//监测区域name
+                        var index = 1;
+                        while (index + 4 <= temp.length) {
+                            mId.push(temp[index]);
+                            mName.push(temp[index + 2]);
+                            mMap[temp[index + 2]] = temp[index];
+                            index += 4;
+                        }
+                        var ms = "";
+                        $.each(mName, function (k, m) {
+                            if (k == 0) ms += "<ul id='pu" + i + "' class='nav nav-pills nav-stacked'>";
+                            ms = ms + "<li style='padding-left: 20px;margin-top: 0;background-color: #31b0d5;' id='map" + mMap[m] + "'>" +
+                                "<a href='#' style='color:#ffffff;background-color: #31b0d5;border-radius: 0%;'>" + m + "</a></li>";
+                        });
+                        ms += "</ul>";
+                        $('#p' + i).append(ms);
+                    }
+                });
+                $('#parent').append("</li>");
+                $('#ps' + i).on("click", function () {
+                    $('#pu' + i).slideToggle(280);
+                });
+            });
+
+            for (var i = 0; i < mId.length; ++i) {
+                mIdFlag[i] = 0;
+            }
+            $.each(mId, function (r, t) {
+                $('#map' + t).on("click", function () {
+                    if (mIdFlag[r] == 0) {
+                        var fp = "{\"id\":" + t + "}";
+                        $.ajax({
+                            url: "http://47.93.237.6:8080//lidar/getData.jsp",
+                            type: "POST",
+                            //dataType: "JSON",
+                            data: {
+                                'fname': "\"getRegionDetails\"",
+                                'fparam': fp
+                            },
+                            success: function (data1) {
+                                var mydata = JSON.parse(data1);
+                                if (mydata.success == 0) {
+                                    alert("访问服务器成功，但是没有数据或者参数构造出错");
+                                }
+                                var geometryType = mydata.result.type;
+                                var geometryData = new Array();
+                                geometryData = mydata.result.geom;
+                                switch (geometryType) {
+                                    case "ST_Polygon" :
+                                        geometryType = "POLYGON";
+                                        //$("#type").val("Polygon");
+                                        break;
+                                    case "ST_Point" :
+                                        geometryType = "MULTIPOINT";
+                                        break;
+                                    case "ST_LineString" :
+                                        geometryType = "LINESTRING";
+                                        break;
+                                    default:
+                                        return;
+                                }
+                                drawByPoints(geometryType, geometryData);
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                alert("访问服务器失败，请重试");
+                            },
+                            timeout: 3000
+                        });
+                        mIdFlag[r] = 1;
+                    } else {
+                        source2.clear();
+                        source2.refresh();
+                        mIdFlag[r] = 0;
+                        var bounds = [-0.05, -0.5,
+                            130.65, 100.06];
+                        map.getView().fit(bounds, map.getSize());
+                    }
+                });
+            });
+        },
+        timeout: 3000
+    })
+})
+</script>
 
 <script type="text/javascript">//地图显示
 
@@ -227,6 +404,24 @@ var source = new ol.source.Vector({wrapX: false});
 
 var vector = new ol.layer.Vector({
     source: source
+});
+
+//显示重点检测区域用的source和vector
+var source2 = new ol.source.Vector({wrapX: false});
+
+var myStyle = new ol.style.Style({
+    fill: new ol.style.Fill({ //矢量图层填充颜色，以及透明度
+        color: 'rgba(255, 255, 255, 0)'
+    }),
+    stroke: new ol.style.Stroke({ //边界样式
+        color: '#319FD3',
+        width: 1
+    }),
+});
+
+var vector2 = new ol.layer.Vector({
+    source: source2,
+    style: myStyle
 });
 
 
@@ -290,13 +485,16 @@ var map = new ol.Map({
         background,
         //basic_map,
         detail_map,
+        vector2,//显示重点监测区域
         vector//画图用的
     ],
     view: new ol.View({
         projection: projection,
+        zoom: 10
     })
 });
 
+//比例尺显示
 map.getView().on('change:resolution', function (evt) {
     var resolution = evt.target.get('resolution');
     var units = map.getView().getProjection().getUnits();
@@ -314,20 +512,93 @@ map.getView().on('change:resolution', function (evt) {
 });
 
 map.getView().fit(bounds, map.getSize());
+
+//点击地图悬浮窗显示
+/**
+ * Elements that make up the popup.
+ */
+var container = document.getElementById('popup');
+var content = document.getElementById('popup-content');
+var closer = document.getElementById('popup-closer');
+
+
+/**
+ * Add a click handler to hide the popup.
+ * @return {boolean} Don't follow the href.
+ */
+closer.onclick = function () {
+    overlay.setPosition(undefined);
+    closer.blur();
+    return false;
+};
+
+
+/**
+ * Create an overlay to anchor the popup to the map.
+ */
+var overlay = new ol.Overlay(/** @type {olx.OverlayOptions} */ ({
+    element: container,
+    autoPan: true,
+    autoPanAnimation: {
+        duration: 250   //当Popup超出地图边界时，为了Popup全部可见，地图移动的速度. 单位为毫秒（ms）
+    }
+}));
+
+/**
+ * Add a click handler to the map to render the popup.
+ */
+/*map.addEventListener('click', function(evt) {
+    var coordinate = evt.coordinate;
+    content.innerHTML = '<p>你点击的坐标是：</p><code>' + '</code>';
+    overlay.setPosition(coordinate);
+    map.addOverlay(overlay);
+});*/
+
 map.on('singleclick', function (evt) {
     if (document.getElementById('type').value !== 'None') return;
-    document.getElementById('nodelist').innerHTML = "Loading... please wait...";
+    var coordinate = evt.coordinate;
     var view = map.getView();
     var viewResolution = view.getResolution();
-    var source2 = detail_map.getSource();
-    var url = source2.getGetFeatureInfoUrl(
-        evt.coordinate, viewResolution, view.getProjection(),
-        {'INFO_FORMAT': 'text/html', 'FEATURE_COUNT': 50});
+    var source = detail_map.getSource();
+    var url = source.getGetFeatureInfoUrl(
+        coordinate, viewResolution, view.getProjection(),
+        {'INFO_FORMAT': 'application/json', 'FEATURE_COUNT': 6});
     if (url) {
-        //
-        document.getElementById('nodelist').innerHTML = '<iframe seamless src="' + url + '"></iframe>';
+        /*document.getElementById('nodelist').innerHTML = '<iframe seamless src="' + url + '"></iframe>';*/
+        $.ajax({
+            url: url,
+            type: "POST",
+            dataType: "JSON",
+            data: {},
+            success: function (data1) {
+                var mlist = "<table class=\"table\">\n" +
+                    "    <thead>\n" +
+                    "    <tr>\n" +
+                    "        <th>row</th>\n" +
+                    "        <th>col</th>\n" +
+                    "        <th>dn</th>\n" +
+                    "    </tr>\n" +
+                    "    </thead>\n" +
+                    "    <tbody>";
+                var mfeatures = data1.features;
+                for (var i = 0; i < mfeatures.length; ++i) {
+                    mlist = mlist + "<tr><td>" + mfeatures[i].properties.row
+                        + "</td><td>" + mfeatures[i].properties.col
+                        + "</td><td>" + mfeatures[i].properties.dn + "</td></tr>";
+                }
+                mlist = mlist + " </tbody>\n" + "</table>";
+                content.innerHTML = mlist;
+                overlay.setPosition(coordinate);
+                map.addOverlay(overlay);
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                alert("访问服务器成功，但是没有数据");
+            },
+            timeout: 3000
+        });
     }
 });
+
 
 var typeSelect = document.getElementById('type');
 
@@ -387,8 +658,10 @@ function removeAllFeature() {
 </script>
 
 
-<script type="text/javascript">//地图刷新
-
+<script src="http://cdn.bootcss.com/jquery/1.9.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+<script src="js/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript">//地图查询与刷新
 //日期格式函数
 Date.prototype.Format = function (fmt) { //author: meizz
     var o = {
@@ -408,507 +681,520 @@ Date.prototype.Format = function (fmt) { //author: meizz
     return fmt;
 };
 
-/*$("#refresh").on("click", function () {
+$('#map_begin_time')
+    .datetimepicker({
+        format: "yyyy-mm-dd  hh:ii",
+        autoclose: true,
+        todayBtn: true,
+        startDate: "2013-11-08 03:00",
+        minuteStep: 10,
+        pickerPosition: "bottom-left"
+    });
 
-    map.removeLayer(detail_map);
-
-    var time = "time_value:\'"+new Date($("#map_end_date").val()).Format("yyyy-MM-dd hh:mm")+"\';x1:8;y1:35;x2:40;y2:80"
-
-    window.alert(time);
-
-    detail_map = new ol.layer.Image({//untiled map,详细变形图，点图
-        source: new ol.source.ImageWMS({
-            ratio: 1,
-            url: 'http://47.93.237.6:8080/map/lidar/wms',
-            params: {
-                'FORMAT': format,
-                'VERSION': '1.1.1',
-                STYLES: '',
-                VIEWPARAMS: time, //需要动态修改
-                LAYERS: 'lidar:detail_map',
-            }
-        })
+//日期填完自动发送ajax请求
+$('#map_end_time')
+    .datetimepicker({
+        format: "yyyy-mm-dd  hh:ii",
+        autoclose: true,
+        todayBtn: true,
+        startDate: "2013-11-08 03:00",
+        minuteStep: 10,
+        pickerPosition: "bottom-left"
     })
+    .on('hide', function (ev) {
+        alert("开始时间：" + $("#map_begin_time").val() + "结束时间： " + $("#map_end_time").val());
+        if (new Date($("#map_begin_time").val()).Format("yyyy-MM-dd hh:mm") > new Date($("#map_end_time").val()).Format("yyyy-MM-dd hh:mm")) {
+            alert("开始时间小于结束时间，请重新输入");
+        } else {
+            var time = "begin_time:\'" + new Date($("#map_begin_time").val()).Format("yyyy-MM-dd hh:mm")
+                + "\';end_time:\'" + new Date($("#map_end_time").val()).Format("yyyy-MM-dd hh:mm")
+                + "\';x1:8;y1:35;x2:40;y2:80";
+            window.alert(time);
+            detail_map.setSource(new ol.source.ImageWMS({
+                ratio: 1,
+                url: 'http://47.93.237.6:8080/map/lidar/wms',
+                params: {
+                    'FORMAT': format,
+                    'VERSION': '1.1.1',
+                    STYLES: '',
+                    VIEWPARAMS: time, //需要动态修改
+                    LAYERS: 'lidar:detail_map'
+                }
+            }));
+        }
+    });
 
-    map.addLayer(detail_map);
+$('#btn_del').click(function () {
+    $('#map_begin_time').val("");
+});
+$('#btn_de2').click(function () {
+    $('#map_end_time').val("");
+});
 
+
+/*$("#refresh").on("click", function () {
+    var time = "begin_time:\'" + new Date($("#map_begin_time").val()).Format("yyyy-MM-dd hh:mm")
+        + "\';end_time:\'" + new Date($("#map_end_time").val()).Format("yyyy-MM-dd hh:mm")
+        + "\';x1:8;y1:35;x2:40;y2:80";
+    alert(time);
+    source: new ol.source.ImageWMS({
+        ratio: 1,
+        url: 'http://47.93.237.6:8080/map/lidar/wms',
+        params: {
+            'FORMAT': format,
+            'VERSION': '1.1.1',
+            STYLES: '',
+            VIEWPARAMS: time, //需要动态修改
+            LAYERS: 'lidar:detail_map',
+        }
+    });
+    source.refresh();
 });*/
 </script>
 
-<script type="text/javascript">
+<script type="text/javascript">//echart初始化
 
-    // 使用
-    require(
-        [
-            'echarts',
-            'echarts/chart/line' // 使用柱状图就加载bar模块，按需加载
-        ],
-        function (ec) {
-            // 基于准备好的dom，初始化echarts图表
-            var myChart = ec.init(document.getElementById('mytable1'));
+// 使用
+require(
+    [
+        'echarts',
+        'echarts/chart/line' // 使用柱状图就加载bar模块，按需加载
+    ]
+);
+// 使用
+require(
+    [
+        'echarts',
+        'echarts/chart/line' // 使用柱状图就加载line模块，按需加载
+    ]
+);
 
-            var option = {
-                tooltip: {
-                    trigger: 'axis'
-                },
-                legend: {
-                    data: ['1']
-                },
-                toolbox: {
-                    show: false,
-                    feature: {
-                        mark: {show: true},
-                        dataView: {show: true, readOnly: false},
-                        magicType: {show: true, type: ['line', 'bar', 'stack', 'tiled']},
-                        restore: {show: true},
-                        saveAsImage: {show: true}
-                    }
-                },
-                calculable: true,
-                xAxis: [
-                    {
-                        type: 'category',
-                        boundaryGap: false,
-                        data: ['1', '2', '3', '4', '5', '6', '7']
-                    }
-                ],
-                yAxis: [
-                    {
-                        type: 'value'
-                    }
-                ],
-                series: [
-                    {
-                        name: '0',
-                        type: 'line',
-                        stack: '总量',
-                        data: [120, 132, 101, 134, 90, 230, 210]
-                    }
-                ]
-            };
-
-            // 为echarts对象加载数据
-            myChart.setOption(option);
-        }
-    );
-    // 使用
-    require(
-        [
-            'echarts',
-            'echarts/chart/line' // 使用柱状图就加载line模块，按需加载
-        ],
-        function (ec) {
-            // 基于准备好的dom，初始化echarts图表
-            var myChart = ec.init(document.getElementById('mytable2'));
-
-            var option = {
-                tooltip: {
-                    trigger: 'axis'
-                },
-                legend: {
-                    data: ['1']
-                },
-                toolbox: {
-                    show: false,
-                    feature: {
-                        mark: {show: true},
-                        dataView: {show: true, readOnly: false},
-                        magicType: {show: true, type: ['line', 'bar', 'stack', 'tiled']},
-                        restore: {show: true},
-                        saveAsImage: {show: true}
-                    }
-                },
-                calculable: true,
-                xAxis: [
-                    {
-                        type: 'category',
-                        boundaryGap: false,
-                        data: ['1', '2', '3', '4', '5', '6', '7']
-                    }
-                ],
-                yAxis: [
-                    {
-                        type: 'value'
-                    }
-                ],
-                series: [
-                    {
-                        name: '0',
-                        type: 'line',
-                        stack: '总量',
-                        data: [120, 132, 101, 134, 90, 230, 210]
-                    }
-                ]
-            };
-
-            // 为echarts对象加载数据
-            myChart.setOption(option);
-        }
-    );
-
-
-    //发送ajax请求
-
-    function changeLineGraph() {
-
-        var mfname = "";//查询数据用于更新折线图
-        var mfparam = "";
-
-        var mfname = "\addNewRegion";//用于添加监控区域
-        var mfparam = "";
-
-        var mbeginTime = new Date($("#pointDate1").val()).Format("yyyy-MM-dd hh:mm");
-        var mendTime = new Date($("#pointDate2").val()).Format("yyyy-MM-dd hh:mm");
-        mfparam = mfparam + "{\"from_time\":\"" + mbeginTime + "\",\"to_time\":\"" + mendTime + "\",\"points\":";
-
-        var selectType = $("#type").val();
-
-        var mgeomtry = "";
-
-        switch (selectType) {
-            case "None":
-                var features = source.getFeatures();
-                if( features == null){
-                    return;
-                }
-                return;
-                //////////////////////////////////////////////////////////////////////////////////
-
-            case "Point":
-                mfname = "getDNforpoints";
-                var features = source.getFeatures();
-                if (features != null && features.length > 0) {
-                    var count = 1;
-                    mgeomtry = mgeomtry + "{";
-                    for (count; count < features.length; ++count) {
-                        var geom = features[count - 1].getGeometry();//Geometry
-                        var lonlats = geom.A;
-                        mgeomtry = mgeomtry + "\"" + count + "\"" + ":" + "\"" +
-                            Math.round(lonlats[0]) + "," + Math.round(lonlats[1]) + "\"" + ",";
-                    }
-                    var geom = features[features.length - 1].getGeometry();//Geometry
-                    var lonlats = geom.A;
-                    mgeomtry = mgeomtry + "\"" + features.length + "\"" + ":" + "\"" +
-                        Math.round(lonlats[0]) + "," + Math.round(lonlats[1]) + "\"";
-                }
-                mfparam = mfparam + mgeomtry + "}}";
-                alert(mfparam);
-                break;
-
-            case "LineString":
-                mfname = "\"L_getdnforline\"";
-                var features = source.getFeatures();
-                mgeomtry += "[";
-                if (features != null && features.length > 0) {
-                    for (x in features) {
-                        var geom = features[x].getGeometry();//Geometry
-                        var lonlats = geom.A;
-
-                        for (var count = 0; count < lonlats.length - 1; ++count) {
-                            mgeomtry = mgeomtry + Math.round(lonlats[count]) + ",";
-                        }
-                        mgeomtry = mgeomtry + Math.round(lonlats[lonlats.length - 1]) + "]";
-                    }
-                }
-                mfparam = mfparam + mgeomtry + "}";
-                alert(mfparam);
-                break;
-
-            case "Polygon":
-                mfname = "getDNforPoly";
-                var features = source.getFeatures();
-                mgeomtry += "[";
-                if (features != null && features.length > 0) {
-                    for (x in features) {
-                        var geom = features[x].getGeometry();//Geometry
-                        var lonlats = geom.A;
-
-                        for (var count = 0; count < lonlats.length - 1; ++count) {
-                            mgeomtry = mgeomtry + Math.round(lonlats[count]) + ",";
-                        }
-                        mgeomtry = mgeomtry + Math.round(lonlats[lonlats.length - 1]) + "]";
-                    }
-                }
-                mfparam = mfparam + mgeomtry + "}";
-                alert(mfparam);
-                break;
-
-            case "Circle":
-                mfname = "getDNforCircle";
-                var features = source.getFeatures();
-                mgeomtry += "{\"center\":";
-                if (features != null && features.length > 0) {
-                    for (x in features) {
-                        var geom = features[x].getGeometry();//Geometry
-                        var lonlats = geom.A;
-                        mgeomtry = mgeomtry + "\"" + Math.round(lonlats[0]) + "," + Math.round(lonlats[1])
-                            + "\"" + ",\"radius\":";
-                        var mdis = Math.round(Math.sqrt(
-                            Math.pow(lonlats[0] - lonlats[2], 2) + Math.pow(lonlats[1] - lonlats[3], 2)));
-                        mgeomtry = mgeomtry + mdis;
-                    }
-                }
-                mfparam = mfparam + mgeomtry + "}}";
-                alert(mfparam);
-                break;
-            default:
-                return;
-        }
-
-        //柱状图x轴，y轴
-        var xAxis = new Array();
-        var yAxis = new Array();
-
-        $.ajax({
-            url: "http://47.93.237.6:8080//lidar/getData.jsp",
-            type: "POST",
-            //dataType: "JSON",
-            data: {
-                'fname': mfname,
-                'fparam': mfparam
-            },
-            success: function (data1) {
-                xAxis.splice(0, xAxis.length);
-                yAxis.splice(0, yAxis.length);
-                var mydata = JSON.parse(data1);
-                alert(data1);
-                if (mydata.success == 0) {
-                    alert("访问服务器成功，但是没有数据或者参数构造出错");
-                }
-                $.each(mydata.result.time_list, function (index, item) {
-                    xAxis.push(new Date(item).Format("yyyy-MM-dd hh:mm"));
-                });
-                var num = parseInt(mydata.result.num_pnt);
-                var pointArr = mydata.result.points_dn;
-                refreshLineTreePoint(xAxis, pointArr.length, pointArr);
-            },
-            error: function (XMLHttpRequest, textStatus, errorThrown) {
-                alert("访问服务器失败，请重试");
-            },
-            timeout: 3000
-        });
-    }
-
-
-    $("#searchPoint").on("click", changeLineGraph);
-
-    function refreshLineTreePoint(_xAxis, _pointNum, _point) {
-        var myChart1 = require('echarts').init(document.getElementById("mytable1"));
-        var _yAxis = new Array();
-        var _yAxis2 = new Array();
-        var _legend = new Array();
-        for (var i = 0; i < _pointNum; i++) {
-            _legend.push(i + 1);
-            var _temp = _point[i];
-            var keys1 = [];
-            for (var p1 in _temp) {
-                if (_temp.hasOwnProperty(p1))
-                    keys1.push(p1);
-            }
-            var _data = eval("_temp[" + keys1[0] + "]");
-            var _data2 = new Array();
-            var accumlate = _data[0];
-            _data2.push(accumlate);
-            for (var j = 1; j < _data.length; j++) {
-                accumlate += _data[j];
-                _data2.push(accumlate);
-            }
-            _yAxis.push({
-                name: i + 1,
-                type: 'line',
-                //stack: '总量',
-                data: _data
-            });
-            _yAxis2.push({
-                name: i + 1,
-                type: 'line',
-                //stack: '总量',
-                data: _data2
-            });
-        }
-
-
-        myChart1.setOption({
-            title: {
-                show: true,
-                text: '形变速度'
-            },
-            grid: {},
-            tooltip: {
-                trigger: 'axis'
-            },
-            legend: {
-                data: _legend
-            },
-            toolbox: {
-                show: false,
-                feature: {
-                    mark: {show: true},
-                    dataView: {show: true, readOnly: false},
-                    magicType: {show: true, type: ['line', 'bar', 'stack', 'tiled']},
-                    restore: {show: true},
-                    saveAsImage: {show: true}
-                }
-            },
-            calculable: true,
-            xAxis: [
-                {
-                    type: 'category',
-                    boundaryGap: false,
-                    data: _xAxis,
-                    axisLabel: {
-                        interval: 0,
-                        rotate: 45,
-                        formatter: function (value, index) {
-                            // 格式化成月/日，只在第一个刻度显示年份
-                            var date = new Date(value);
-                            var texts = [(date.getDate()), date.getHours()];
-                            if (index === 0) {
-                                texts.unshift(date.getYear());
-                            }
-                            texts = texts.join('-');
-                            var tempMinutes = date.getMinutes();
-                            if (tempMinutes === 0) {
-                                tempMinutes = "00";
-                            }
-                            texts = [texts, tempMinutes];
-                            return texts.join(':');
-                        }
-                    }
-                }
-            ],
-
-            yAxis: [
-                {
-                    type: 'value',
-                    min: function (value) {
-                        return -10;
-                    },
-                    max: function (value) {
-                        return 10;
-                    }
-                }
-            ],
-            series: _yAxis
-        });
-
-        var myChart2 = require('echarts').init(document.getElementById("mytable2"));
-        myChart2.setOption({
-            title: {
-                show: true,
-                text: '形变总量'
-            },
-            grid: {},
-            tooltip: {
-                trigger: 'axis'
-            },
-            legend: {
-                data: _legend
-            },
-            toolbox: {
-                show: false,
-                feature: {
-                    mark: {show: true},
-                    dataView: {show: true, readOnly: false},
-                    magicType: {show: true, type: ['line', 'bar', 'stack', 'tiled']},
-                    restore: {show: true},
-                    saveAsImage: {show: true}
-                }
-            },
-            calculable: true,
-            xAxis: [
-                {
-                    type: 'category',
-                    boundaryGap: false,
-                    data: _xAxis,
-                    axisLabel: {
-                        interval: 0,
-                        rotate: 45,
-                        formatter: function (value, index) {
-                            // 格式化成月/日，只在第一个刻度显示年份
-                            var date = new Date(value);
-                            var texts = [date.getDate(), date.getHours()];
-                            if (index === 0) {
-                                texts.unshift(date.getYear());
-                            }
-                            texts = texts.join("-");
-                            var tempMinutes = date.getMinutes();
-                            if (tempMinutes === 0) {
-                                tempMinutes = "00";
-                            }
-                            texts = [texts, tempMinutes];
-                            return texts.join(':');
-                        }
-                    }
-                }
-            ],
-            yAxis: [
-                {
-                    type: 'value',
-                    min: function (value) {
-                        return -10;
-                    },
-                    max: function (value) {
-                        return 10;
-                    }
-                }
-            ],
-            series: _yAxis2
-        });
-    }
-
-
-    //默认图表信息
-    $(document).ready(function () {
-        //柱状图x轴，y轴
-        var xAxis = new Array();
-        var yAxis = new Array();
-        $.ajax({
-            url: "http://47.93.237.6:8080//lidar/getData.jsp",
-            type: "POST",
-            //dataType: "JSON",
-            data: {
-                'fname': "getDNforpoints",
-                'fparam': "{\"from_time\":\"2017-11-08 03:00\",\"to_time\":\"2017-11-08 06:30\",\"points\":{\"1\":\"32,43\",\"2\":\"38,83\",\"3\":\"12,64\"}}"
-            },
-            success: function (data1) {
-                xAxis.splice(0, xAxis.length);
-                yAxis.splice(0, yAxis.length);
-                var mydata = JSON.parse(data1);
-                $.each(mydata.result.time_list, function (index, item) {
-                    xAxis.push(new Date(item).Format("yyyy-MM-dd hh:mm"));
-                });
-                var num = parseInt(mydata.result.num_pnt);
-                var pointArr = mydata.result.points_dn;
-                refreshLineTreePoint(xAxis, pointArr.length, pointArr);
-            },
-            error: function (XMLHttpRequest, textStatus, errorThrown) {
-                alert("访问服务器成功，但是没有数据");
-            },
-            timeout: 3000
-        });
+//日期填完自动发送ajax请求
+$('#pointDate1')
+    .datetimepicker({
+        format: "yyyy-mm-dd  hh:ii",
+        autoclose: true,
+        todayBtn: true,
+        startDate: "2013-11-08 03:00",
+        minuteStep: 10,
+        pickerPosition: "bottom-left"
     });
+
+$('#pointDate2')
+    .datetimepicker({
+        format: "yyyy-mm-dd  hh:ii",
+        autoclose: true,
+        todayBtn: true,
+        startDate: "2013-11-08 03:00",
+        minuteStep: 10,
+        pickerPosition: "bottom-left"
+    })
+    .on('hide', function (ev) {
+        alert("开始时间：" + $("#pointDate1").val() + "结束时间： " + $("#pointDate2").val());
+        if (new Date($("#map_begin_time").val()).Format("yyyy-MM-dd hh:mm") > new Date($("#map_end_time").val()).Format("yyyy-MM-dd hh:mm")) {
+            alert("开始时间小于结束时间，请重新输入");
+        } else {
+            changeLineGraph();
+        }
+    });
+
+
+$('#btn_de3').click(function () {
+    $('#pointDate1').val("");
+});
+$('#btn_de4').click(function () {
+    $('#pointDate2').val("");
+});
+
+
+
+//默认加载折线图
+$(document).ready(function () {
+    //柱状图x轴，y轴
+    var xAxis = new Array();
+    var yAxis = new Array();
+    $.ajax({
+        url: "http://47.93.237.6:8080//lidar/getData.jsp",
+        type: "POST",
+        //dataType: "JSON",
+        data: {
+            'fname': "getDNforpoints",
+            'fparam': "{\"from_time\":\"2017-11-08 03:00\",\"to_time\":\"2017-11-08 06:30\",\"points\":{\"1\":\"32,43\",\"2\":\"38,83\",\"3\":\"12,64\"}}"
+        },
+        success: function (data1) {
+            xAxis.splice(0, xAxis.length);
+            yAxis.splice(0, yAxis.length);
+            var mydata = JSON.parse(data1);
+            $.each(mydata.result.time_list, function (index, item) {
+                xAxis.push(new Date(item).Format("yyyy-MM-dd hh:mm"));
+            });
+            var num = parseInt(mydata.result.num_pnt);
+            var pointArr = mydata.result.points_dn;
+            refreshLineTreePoint(xAxis, pointArr.length, pointArr);
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+            alert("访问服务器成功，但是没有数据");
+        },
+        timeout: 5000
+    });
+});
+
+//更新折线图
+$("#searchPoint").on("click", changeLineGraph);
+
+function changeLineGraph() {
+
+    var mfname = "";//查询数据用于更新折线图
+    var mfparam = "";
+
+    var mfname = "\addNewRegion";//用于添加监控区域
+    var mfparam = "";
+
+    var mbeginTime = new Date($("#pointDate1").val()).Format("yyyy-MM-dd hh:mm");
+    var mendTime = new Date($("#pointDate2").val()).Format("yyyy-MM-dd hh:mm");
+    mfparam = mfparam + "{\"from_time\":\"" + mbeginTime + "\",\"to_time\":\"" + mendTime + "\",\"points\":";
+
+    var selectType = $("#type").val();
+
+    var mgeomtry = "";
+
+    switch (selectType) {
+        case "None":
+            var features = source.getFeatures();
+            if (features == null) {
+                return;
+            }
+            return;
+        //////////////////////////////////////////////////////////////////////////////////
+        case "Point":
+            mfname = "getDNforpoints";
+            var features = source.getFeatures();
+            if (features != null && features.length > 0) {
+                var count = 1;
+                mgeomtry = mgeomtry + "{";
+                for (count; count < features.length; ++count) {
+                    var geom = features[count - 1].getGeometry();//Geometry
+                    var lonlats = geom.A;
+                    mgeomtry = mgeomtry + "\"" + count + "\"" + ":" + "\"" +
+                        Math.round(lonlats[0]) + "," + Math.round(lonlats[1]) + "\"" + ",";
+                }
+                var geom = features[features.length - 1].getGeometry();//Geometry
+                var lonlats = geom.A;
+                mgeomtry = mgeomtry + "\"" + features.length + "\"" + ":" + "\"" +
+                    Math.round(lonlats[0]) + "," + Math.round(lonlats[1]) + "\"";
+            }
+            mfparam = mfparam + mgeomtry + "}}";
+            alert(mfparam);
+            break;
+
+        case "LineString":
+            mfname = "getDNforline";
+            var features = source.getFeatures();
+            mgeomtry += "[";
+            if (features != null && features.length > 0) {
+                for (x in features) {
+                    var geom = features[x].getGeometry();//Geometry
+                    var lonlats = geom.A;
+
+                    for (var count = 0; count < lonlats.length - 1; ++count) {
+                        mgeomtry = mgeomtry + Math.round(lonlats[count]) + ",";
+                    }
+                    mgeomtry = mgeomtry + Math.round(lonlats[lonlats.length - 1]) + "]";
+                }
+            }
+            mfparam = mfparam + mgeomtry + "}";
+            alert(mfparam);
+            break;
+
+        case "Polygon":
+            mfname = "getDNforPoly";
+            var features = source.getFeatures();
+            mgeomtry += "[";
+            if (features != null && features.length > 0) {
+                for (x in features) {
+                    var geom = features[x].getGeometry();//Geometry
+                    var lonlats = geom.A;
+
+                    for (var count = 0; count < lonlats.length - 1; ++count) {
+                        mgeomtry = mgeomtry + Math.round(lonlats[count]) + ",";
+                    }
+                    mgeomtry = mgeomtry + Math.round(lonlats[lonlats.length - 1]) + "]";
+                }
+            }
+            mfparam = mfparam + mgeomtry + "}";
+            alert(mfparam);
+            break;
+
+        case "Circle":
+            mfname = "getDNforCircle";
+            var features = source.getFeatures();
+            mgeomtry += "{\"center\":";
+            if (features != null && features.length > 0) {
+                for (x in features) {
+                    var geom = features[x].getGeometry();//Geometry
+                    var lonlats = geom.A;
+                    mgeomtry = mgeomtry + "\"" + Math.round(lonlats[0]) + "," + Math.round(lonlats[1])
+                        + "\"" + ",\"radius\":";
+                    var mdis = Math.round(Math.sqrt(
+                        Math.pow(lonlats[0] - lonlats[2], 2) + Math.pow(lonlats[1] - lonlats[3], 2)));
+                    mgeomtry = mgeomtry + mdis;
+                }
+            }
+            mfparam = mfparam + mgeomtry + "}}";
+            alert(mfparam);
+            break;
+        default:
+            return;
+    }
+
+    //柱状图x轴，y轴
+    var xAxis = new Array();
+    var yAxis = new Array();
+
+    $.ajax({
+        url: "http://47.93.237.6:8080//lidar/getData.jsp",
+        type: "POST",
+        //dataType: "JSON",
+        data: {
+            'fname': mfname,
+            'fparam': mfparam
+        },
+        success: function (data1) {
+            xAxis.splice(0, xAxis.length);
+            yAxis.splice(0, yAxis.length);
+            alert(data1);
+            var mydata = JSON.parse(data1);
+            if (mydata.success == 0) {
+                alert("访问服务器成功，但是没有数据或者参数构造出错");
+            }
+            $.each(mydata.result.time_list, function (index, item) {
+                xAxis.push(new Date(item).Format("yyyy-MM-dd hh:mm"));
+            });
+            var num = parseInt(mydata.result.num_pnt);
+            var pointArr = mydata.result.points_dn;
+            refreshLineTreePoint(xAxis, pointArr.length, pointArr);
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+            alert("访问服务器失败，请重试");
+        },
+        timeout: 3000
+    });
+}
+
+function refreshLineTreePoint(_xAxis, _pointNum, _point) {
+    var myChart1 = require('echarts').init(document.getElementById("mytable1"));
+    var _yAxis = new Array();
+    var _yAxis2 = new Array();
+    var _legend = new Array();
+    for (var i = 0; i < _pointNum; i++) {
+        var _temp = _point[i];
+        var keys1 = new Array();
+        for (var p1 in _temp) {
+            if (_temp.hasOwnProperty(p1))
+                keys1.push(p1);
+        }
+        /*var _data = eval("_temp[" + keys1[0] + "]");*/
+        var _data = null;
+        var _linename = null;//折线的名字
+        if (keys1[0].match("[0-9]+")) {
+            _data = eval("_temp[" + keys1[0] + "]");
+            _legend.push(i + 1);
+        } else {
+            _data = eval("_temp." + keys1[0] + "");
+            _legend.push(keys1[0]);
+        }
+        var _data2 = new Array();
+        var accumlate = _data[0];
+        _data2.push(accumlate);
+        for (var j = 1; j < _data.length; j++) {
+            accumlate += _data[j];
+            _data2.push(accumlate);
+        }
+        _yAxis.push({
+            name: i + 1,
+            type: 'line',
+            //stack: '总量',
+            data: _data
+        });
+        _yAxis2.push({
+            name: i + 1,
+            type: 'line',
+            //stack: '总量',
+            data: _data2
+        });
+    }
+
+
+    myChart1.setOption({
+        title: {
+            x:'25',
+            y:'10',
+            show: true,
+            text: '形变速度',
+            textStyle: {
+                "fontSize": 12,
+                "fontWeight": "bolder",
+                "color": "#333"
+            }
+            /*left: 'center'*/
+        },
+        grid: {
+            x:22,
+            y:5,
+            x2:10,
+            y2:40},
+        tooltip: {
+            trigger: 'axis'
+        },
+        legend: {
+            data: _legend
+        },
+        toolbox: {
+            show: false,
+            feature: {
+                mark: {show: true},
+                dataView: {show: true, readOnly: true},
+                magicType: {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+                restore: {show: true},
+                saveAsImage: {show: true}
+            }
+        },
+        calculable: false,
+        xAxis: [
+            {
+                type: 'category',
+                boundaryGap: false,
+                data: _xAxis,
+                axisLabel: {
+                    interval: 0,
+                    rotate: 45,
+                    formatter: function (value, index) {
+                        // 格式化成月/日，只在第一个刻度显示年份
+                        var date = new Date(value);
+                        var texts = [(date.getDate()), date.getHours()];
+                        if (index === 0) {
+                            texts.unshift(date.getYear());
+                        }
+                        texts = texts.join('-');
+                        var tempMinutes = date.getMinutes();
+                        if (tempMinutes === 0) {
+                            tempMinutes = "00";
+                        }
+                        texts = [texts, tempMinutes];
+                        return texts.join(':');
+                    }
+                }
+            }
+        ],
+
+        yAxis: [
+            {
+                type: 'value',
+                min: function (value) {
+                    return -10;
+                },
+                max: function (value) {
+                    return 10;
+                }
+            }
+        ],
+        series: _yAxis
+    });
+
+    var myChart2 = require('echarts').init(document.getElementById("mytable2"));
+    myChart2.setOption({
+        title: {
+            x:'25',
+            y:'10',
+            show: true,
+            text: '形变总量',
+            textStyle: {
+                "fontSize": 12,
+                "fontWeight": "bolder",
+                "color": "#333"
+            }
+        },
+        grid: {
+            x:20,
+            y:5,
+            x2:10,
+            y2:40},
+        tooltip: {
+            trigger: 'axis'
+        },
+        legend: {
+            data: _legend
+        },
+        toolbox: {
+            show: false,
+            feature: {
+                mark: {show: true},
+                dataView: {show: true, readOnly: true},
+                magicType: {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+                restore: {show: true},
+                saveAsImage: {show: true}
+            }
+        },
+        calculable: false,
+        xAxis: [
+            {
+                type: 'category',
+                boundaryGap: false,
+                data: _xAxis,
+                axisLabel: {
+                    interval: 0,
+                    rotate: 45,
+                    formatter: function (value, index) {
+                        // 格式化成月/日，只在第一个刻度显示年份
+                        var date = new Date(value);
+                        var texts = [date.getDate(), date.getHours()];
+                        if (index === 0) {
+                            texts.unshift(date.getYear());
+                        }
+                        texts = texts.join("-");
+                        var tempMinutes = date.getMinutes();
+                        if (tempMinutes === 0) {
+                            tempMinutes = "00";
+                        }
+                        texts = [texts, tempMinutes];
+                        return texts.join(':');
+                    }
+                }
+            }
+        ],
+        yAxis: [
+            {
+                type: 'value',
+                min: function (value) {
+                    return -10;
+                },
+                max: function (value) {
+                    return 10;
+                }
+            }
+        ],
+        series: _yAxis2
+    });
+}
 </script>
 
 <script type="text/javascript">//根据坐标加载图形
-function drawByPoints(geometryTye,points) {
-    var wkt=geometryTye;
-    if(geometryTye == "POLYGON") {
+function drawByPoints(geometryTye, points) {
+    var wkt = geometryTye;
+    if (geometryTye == "POLYGON") {
         wkt += "((";
     } else {
         wkt += "("
     }
 
-    var length=points.length;
-    for(var i=0;i<length;i=i+2)
-    {
-        wkt+=points[i]+" "+points[i+1];
-        if(i!=length-2)
-        {
-            wkt+=",";
+    var length = points.length;
+    for (var i = 0; i < length; i = i + 2) {
+        wkt += points[i] + " " + points[i + 1];
+        if (i != length - 2) {
+            wkt += ",";
         }
     }
-    if(geometryTye == "POLYGON") {
+    if (geometryTye == "POLYGON") {
         wkt += "))";
     } else {
         wkt += ")"
@@ -918,20 +1204,11 @@ function drawByPoints(geometryTye,points) {
         dataProjection: 'EPSG:404000',
         featureProjection: 'EPSG:404000'
     });
-    source.clear();
-    source.addFeature(feature);
-    source.refresh();
-    /*var myVector = new ol.layer.Vector({
-        source: source
-    });
-    map.addLayer(myVector);*/
-    /*//source.clear();
-    source.addFeature(polygon);
-    //source.refresh();
-    //source.changed();
-    //map.updateSize();
-    source.dispatchChangeEvent();
-    map.updateSize();*/
+    source2.clear();
+    source2.addFeature(feature);
+    source2.refresh();
+    var ext = feature.getGeometry().getExtent();
+    map.getView().fit(ext, map.getSize());
 }
 </script>
 
