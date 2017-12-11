@@ -278,6 +278,7 @@ $(document).ready(function () {
             var mId = new Array();//监测区域id
             var mIdFlag = new Array();//按钮状态数组
             var mMap = {};
+            var mSupId = mydata.result.sup_id;
             $.each(mydata.result.sup, function (i, p) {
                 var p1 = "<li id='p" + i + "' style='cursor: pointer;'>" + "<a id='ps" + i + "' href='#' style='color:#ffffff;background-color: #363c3e;border-radius: 0%;'>" + p + "</a>";
                 $('#parent').append(p1);
@@ -330,23 +331,9 @@ $(document).ready(function () {
                                 if (mydata.success == 0) {
                                     alert("访问服务器成功，但是没有数据或者参数构造出错");
                                 }
-                                var geometryType = mydata.result.type;
+                                var geometryType = "POLYGON";
                                 var geometryData = new Array();
                                 geometryData = mydata.result.geom;
-                                switch (geometryType) {
-                                    case "ST_Polygon" :
-                                        geometryType = "POLYGON";
-                                        //$("#type").val("Polygon");
-                                        break;
-                                    case "ST_Point" :
-                                        geometryType = "MULTIPOINT";
-                                        break;
-                                    case "ST_LineString" :
-                                        geometryType = "LINESTRING";
-                                        break;
-                                    default:
-                                        return;
-                                }
                                 drawByPoints(geometryType, geometryData);
                             },
                             error: function (XMLHttpRequest, textStatus, errorThrown) {
