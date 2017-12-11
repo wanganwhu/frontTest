@@ -80,7 +80,7 @@
 
     <!--<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.js"></script>
     <script src="https://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.js"></script>-->
-    <script src="http://cdn.bootcss.com/jquery/1.9.1/jquery.min.js"></script>
+    <script src="http://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
     <!--<script src="http://cdn.bootcss.com/twitter-bootstrap/2.2.2/bootstrap.min.js"></script>-->
     <script src="https://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
     <script src="js/scripts.js"></script>
@@ -103,51 +103,36 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
-            <nav class="navbar navbar-default" role="navigation">
-                <div class="navbar-header">
-
-                    <button type="button" class="navbar-toggle" data-toggle="collapse"
-                            data-target="#bs-example-navbar-collapse-1">
-                        <span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span
-                            class="icon-bar"></span><span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="#">首页</a>
-                </div>
-
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <!--<ul class="nav navbar-nav">
-                        <li class="active">
-                            <a href="#">Link</a>
+            <ul class="nav nav-tabs">
+                <li class="active">
+                    <a href="#">Home</a>
+                </li>
+                <li>
+                    <a href="#">Profile</a>
+                </li>
+                <li class="disabled">
+                    <a href="#">Messages</a>
+                </li>
+                <li class="dropdown pull-right">
+                    <a href="#" data-toggle="dropdown" class="dropdown-toggle">Dropdown<strong class="caret"></strong></a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="#">Action</a>
                         </li>
                         <li>
-                            <a href="#">Link</a>
+                            <a href="#">Another action</a>
                         </li>
-                    </ul>-->
-                    <ul class="nav navbar-nav navbar-right">
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">账户管理<strong
-                                    class="caret"></strong></a>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a href="#">Action</a>
-                                </li>
-                                <li>
-                                    <a href="#">Another action</a>
-                                </li>
-                                <li>
-                                    <a href="#">Something else here</a>
-                                </li>
-                                <li class="divider">
-                                </li>
-                                <li>
-                                    <a href="#">Separated link</a>
-                                </li>
-                            </ul>
+                        <li>
+                            <a href="#">Something else here</a>
+                        </li>
+                        <li class="divider">
+                        </li>
+                        <li>
+                            <a href="#">Separated link</a>
                         </li>
                     </ul>
-                </div>
-
-            </nav>
+                </li>
+            </ul>
         </div>
     </div>
 
@@ -808,7 +793,7 @@ $('#btn_de4').click(function () {
 
 
 
-//默认加载折线图
+//加载默认折线图，为整个区域的平均值
 $(document).ready(function () {
     //柱状图x轴，y轴
     var xAxis = new Array();
@@ -818,8 +803,9 @@ $(document).ready(function () {
         type: "POST",
         //dataType: "JSON",
         data: {
-            'fname': "getDNforpoints",
-            'fparam': "{\"from_time\":\"2017-11-08 03:00\",\"to_time\":\"2017-11-08 06:30\",\"points\":{\"1\":\"32,43\",\"2\":\"38,83\",\"3\":\"12,64\"}}"
+            'fname': "getDNforPoly",
+            'fparam': "{\"from_time\":\"2017-11-08 03:00\",\"to_time\":\"2017-11-08 06:30\",\"points\":" +
+            "[-0.05,-0.5,130.65,-0.5,130.65,100.06,-0.05,100.06,-0.05,-0.5]}"
         },
         success: function (data1) {
             xAxis.splice(0, xAxis.length);
@@ -986,6 +972,7 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
     var _yAxis = new Array();
     var _yAxis2 = new Array();
     var _legend = new Array();
+    var mchartgap = 0;
     for (var i = 0; i < _pointNum; i++) {
         var _temp = _point[i];
         var keys1 = new Array();
@@ -995,7 +982,6 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
         }
         /*var _data = eval("_temp[" + keys1[0] + "]");*/
         var _data = null;
-        var _linename = null;//折线的名字
         if (keys1[0].match("[0-9]+")) {
             _data = eval("_temp[" + keys1[0] + "]");
             _legend.push(i + 1);
@@ -1010,6 +996,8 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
             accumlate += _data[j];
             _data2.push(accumlate);
         }
+        //横坐标间隔
+        mchartgap = _data.length;
         _yAxis.push({
             name: i + 1,
             type: 'line',
@@ -1022,8 +1010,9 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
             //stack: '总量',
             data: _data2
         });
-    }
 
+    }
+    mchartgap = parseInt(mchartgap/6);
 
     myChart1.setOption({
         title: {
@@ -1039,9 +1028,9 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
             /*left: 'center'*/
         },
         grid: {
-            x:22,
+            x:25,
             y:5,
-            x2:10,
+            x2:25,
             y2:40},
         tooltip: {
             trigger: 'axis'
@@ -1066,16 +1055,13 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
                 boundaryGap: false,
                 data: _xAxis,
                 axisLabel: {
-                    interval: 0,
-                    rotate: 45,
+                    interval: mchartgap,
+                    rotate: 0,
                     formatter: function (value, index) {
                         // 格式化成月/日，只在第一个刻度显示年份
                         var date = new Date(value);
-                        var texts = [(date.getDate()), date.getHours()];
-                        if (index === 0) {
-                            texts.unshift(date.getYear());
-                        }
-                        texts = texts.join('-');
+                        var texts = "(" + date.getDate() +")";
+                        texts = texts + date.getHours();
                         var tempMinutes = date.getMinutes();
                         if (tempMinutes === 0) {
                             tempMinutes = "00";
@@ -1115,9 +1101,9 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
             }
         },
         grid: {
-            x:20,
+            x:25,
             y:5,
-            x2:10,
+            x2:25,
             y2:40},
         tooltip: {
             trigger: 'axis'
@@ -1142,16 +1128,13 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
                 boundaryGap: false,
                 data: _xAxis,
                 axisLabel: {
-                    interval: 0,
-                    rotate: 45,
+                    interval: mchartgap,
+                    rotate: 0,
                     formatter: function (value, index) {
                         // 格式化成月/日，只在第一个刻度显示年份
                         var date = new Date(value);
-                        var texts = [date.getDate(), date.getHours()];
-                        if (index === 0) {
-                            texts.unshift(date.getYear());
-                        }
-                        texts = texts.join("-");
+                        var texts = "(" + date.getDate() +")";
+                        texts = texts + date.getHours();
                         var tempMinutes = date.getMinutes();
                         if (tempMinutes === 0) {
                             tempMinutes = "00";
