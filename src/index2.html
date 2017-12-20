@@ -3,10 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="user-scalable=no,width=device-width,initial-scale=1,maximum-scale=1">
-    <title>vue前后端分离</title>
+    <title>登陆</title>
     <link rel="stylesheet" type="text/css" href="css/common.css">
     <link rel="stylesheet" type="text/css" href="css/login.css">
     <script src="http://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="http://pv.sohu.com/cityjson"></script>
 </head>
 <body>
 <div class="login_cont">
@@ -16,7 +17,7 @@
             <a href="#" class="signin">登录</a>
         </div>
     </div>
-    <form>
+    <!--<form>-->
         <div class="input_signup active">
             <!--<input class="input" id="user_name" type="text" aria-label="用户名（包含字母／数字／下划线" placeholder="用户名">
             <div class="hint">请填写符合格式的用户名</div>-->
@@ -30,12 +31,13 @@
             <div class="hint">请再次输入密码</div>
             <input type="submit" id="submit" class="button" name="button" value="注册">
         </div>
-    </form>
-    <form>
+    <!--</form>-->
+    <!--<form action="index.html" id="reg_form" method="post">-->
         <div class="input_signin">
             <!--<input class="input" id="login_user_name" type="text" aria-label="用户名" placeholder="用户名">
             <div class="hint">请输入用户名</div>-->
-            <input class="input" id="user_email" type="text" aria-label="邮箱" placeholder="邮箱">
+            <input class="input" id="login_email" type="text" aria-label="邮箱" placeholder="邮箱">
+            <!--<input type="hidden" value="" name="uid" id="ID_use_id"/>-->
             <div class="hint">请填写邮箱</div>
             <input class="input" id="login_password" type="password" aria-label="密码" placeholder="密码">
             <div class="hint">请输入密码</div>
@@ -44,11 +46,12 @@
                 <a href="forget.html">忘记密码？</a>
             </div>
         </div>
-    </form>
+    <!--</form>-->
 </div>
 <script type="text/javascript" src="js/login.js"></script>
 <script type="text/javascript" src="js/form.js"></script>
 <script type="text/javascript" src="js/config.js"></script>
+<script type="text/javascript" src="js/register_ajax.js"></script>
 <script type="text/javascript" src="js/login_ajax.js"></script>
 </body>
 </html>

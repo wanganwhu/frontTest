@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Draw Test</title>
+    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <!--
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <script src="bootstrap.min.js"></script>
+    <link rel="stylesheet" href="ol.css" type="text/css">
+    <script src="ol.js"></script>
+    -->
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="http://openlayers.org/en/v3.11.2/css/ol.css" type="text/css">
+    <script src="http://openlayers.org/en/v3.11.2/build/ol.js"></script>
+
+</head>
+<body>
+<div class="container-fluid">
+
+    <div class="row-fluid">
+        <div class="span12">
+            <div id="map" class="map" style="width:50%;height:50%;"></div>
+            <input type="button"  name="TEST_Box" id="TEST_Box" value="TEST_Box" onclick="TEST_Box('Box');"/>
+            <input type="button"  name="clear" id="clear" value="clear" onclick="TEST_Box_Clear();"/>
+            <input type="button"  name="ShowCoordinateInfo" id="ShowCoordinateInfo" value="ShowCoordinateInfo" onclick="showCoordinateInfo();"/>
+
+            <label>Projection </label>
+            <select id="projection">
+                <option value="EPSG:4326">EPSG:4326</option>
+                <option value="EPSG:3857">EPSG:3857</option>
+            </select>
+            <label>Precision </label>
+            <input id="precision" type="number" min="0" max="12" value="4"/>
+
+        </div>
+        <div class="span6" id="mouse-position">&nbsp;</div>
+
+    </div>
+
+</div>
+<script>
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /*
+    var raster = new ol.layer.Tile({
+      source: new ol.source.MapQuest({layer: 'sat'})
+    });
+    */
+
+    var source = new ol.source.Vector({wrapX: false});
+
+    var vector = new ol.layer.Vector({
+        source: source,
+        style: new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(255, 255, 255, 0.2)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: '#ffcc33',
+                width: 2
+            }),
+            image: new ol.style.Circle({
+                radius: 7,
+                fill: new ol.style.Fill({
+                    color: '#ffcc33'
+                })
+            })
+        })
+    });
+
+    /*
+    var map = new ol.Map({
+      layers: [raster, vector],
+      target: 'map',
+      view: new ol.View({
+        center: [-11000000, 4600000],
+        zoom: 4
+      })
+    });
+    */
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    var mousePositionControl = new ol.control.MousePosition({
+        coordinateFormat: ol.coordinate.createStringXY(4),
+        projection: 'EPSG:4326',
+        // comment the following two lines to have the mouse position
+        // be placed within the map.
+        className: 'custom-mouse-position',
+        target: document.getElementById('mouse-position'),
+        undefinedHTML: '&nbsp;'
+    });
+
+
+    var projectionSelect = $('#projection');
+    projectionSelect.on('change', function() {
+        mousePositionControl.setProjection(ol.proj.get(this.value));
+    });
+    projectionSelect.val(mousePositionControl.getProjection().getCode());
+
+    var precisionInput = $('#precision');
+    precisionInput.on('change', function() {
+        var format = ol.coordinate.createStringXY(this.valueAsNumber);
+        mousePositionControl.setCoordinateFormat(format);
+    });
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    var map = new ol.Map({
+        layers: [new ol.layer.Tile({source: new ol.source.OSM()}), vector],
+        target: 'map',
+        controls: ol.control.defaults({
+            attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+                collapsible: false
+            })
+        }).extend([mousePositionControl]),
+        view: new ol.View({
+            projection: 'EPSG:4326',
+            center: [0, 0],
+            maxZoom : 4,
+            minZoom : 1,
+            zoom: 1
+        })
+    });
+
+    document.getElementById('zoom-out').onclick = function() {
+        var view = map.getView();
+        var zoom = view.getZoom();
+        view.setZoom(zoom - 1);
+    };
+
+    document.getElementById('zoom-in').onclick = function() {
+        var view = map.getView();
+        var zoom = view.getZoom();
+        view.setZoom(zoom + 1);
+    };
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    var draw; // global so we can remove it later
+    var old_feature;
+    function addInteraction(value) {
+        var geometryFunction, maxPoints;
+        if (value === 'Box') {
+            value = 'LineString';
+            maxPoints = 2;
+            geometryFunction = function(coordinates, geometry) {
+                if (!geometry) {
+                    geometry = new ol.geom.Polygon(null);
+                }
+                var start = coordinates[0];
+                var end = coordinates[1];
+                geometry.setCoordinates([
+                    [start, [start[0], end[1]], end, [end[0], start[1]], start]
+                ]);
+                return geometry;
+            };
+        }
+        draw = new ol.interaction.Draw({
+            source: source,
+            type: /** @type {ol.geom.GeometryType} */ (value),
+            geometryFunction: geometryFunction,
+            maxPoints: maxPoints
+        });
+
+        //画图层开始前先删除之前画的图形
+        draw.on('drawstart',
+            function(evt) {
+                // set old_feature
+                if(old_feature!=null && old_feature!="undifined"){
+                    //删除前一个图层
+                    source.removeFeature(old_feature);
+                }
+                old_feature = evt.feature;
+            }, this);
+
+        map.addInteraction(draw);
+    }
+
+
+    //激活画图
+    function TEST_Box(value){
+        value = "LineString";
+        map.removeInteraction(draw);
+        addInteraction(value);
+    }
+
+    //清理按钮调用
+    function TEST_Box_Clear(){
+        removeAllFeature();
+        map.removeInteraction(draw);
+
+    }
+
+    //清空所有图形
+    function removeAllFeature() {
+        var features = source.getFeatures();
+        if (features != null && features.length > 0) {
+            for (x in features) {
+                var properties = features[x].getProperties();
+                var id = properties.id;
+                //if (id == selectedFeatureID) {
+                source.removeFeature(features[x]);
+                //}
+            }
+        }
+    }
+
+    //获得图形坐标信息
+    function showCoordinateInfo(){
+        var features = source.getFeatures();
+        if (features != null && features.length > 0) {
+            for (x in features) {
+                var geom = features[x].getGeometry();//Geometry
+                var lonlats = geom.A;
+                alert(lonlats);
+            }
+        }
+    }
+    //addInteraction();
+
+
+
+</script>
+</body>
+</html>

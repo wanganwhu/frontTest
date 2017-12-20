@@ -9,15 +9,23 @@
     <meta name="description" content="雷达形变观测">
     <meta name="author" content="">
 
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
     <link rel="stylesheet" href="https://openlayers.org/en/v4.4.2/css/ol.css" type="text/css">
-    <link href="https://cdn.bootcss.com/bootstrap/3.3.0/css/bootstrap.css" rel="stylesheet">
+    <!--<link href="https://cdn.bootcss.com/bootstrap/3.3.0/css/bootstrap.css" rel="stylesheet">-->
+    <link href="css/datetimepicker.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <style>
         .col-md-6 {
             padding-left: 2px;
             padding-right: 2px;
         }
+
+        li.active a {
+            border-radius: 0%;
+        }
+
         .ol-popup {
             position: absolute;
             background-color: white;
@@ -79,56 +87,39 @@
 
 
     <!--<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.js"></script>
+
     <script src="https://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.js"></script>-->
-    <script src="http://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <!--<script src="http://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>-->
     <!--<script src="http://cdn.bootcss.com/twitter-bootstrap/2.2.2/bootstrap.min.js"></script>-->
     <script src="https://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
-    <script src="js/scripts.js"></script>
 
-    <!-- Le styles -->
-    <!--<link href="http://cdn.bootcss.com/twitter-bootstrap/2.2.2/css/bootstrap.min.css" rel="stylesheet">-->
-    <!--<link href="http://cdn.bootcss.com/twitter-bootstrap/2.2.2/css/bootstrap-responsive.min.css" rel="stylesheet">-->
-    <link href="css/datetimepicker.css" rel="stylesheet">
 
-    <style type="text/css">
-
-        li.active a {
-            border-radius: 0%;
-        }
-    </style>
 
 </head>
 <body>
-
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
             <ul class="nav nav-tabs">
                 <li class="active">
-                    <a href="#">Home</a>
+                    <a href="index.html">首页</a>
+                    <!--<a href="#">Home${param.uid}</a>-->
                 </li>
-                <li>
+               <!-- <li>
                     <a href="#">Profile</a>
                 </li>
                 <li class="disabled">
                     <a href="#">Messages</a>
-                </li>
+                </li>-->
                 <li class="dropdown pull-right">
-                    <a href="#" data-toggle="dropdown" class="dropdown-toggle">Dropdown<strong class="caret"></strong></a>
+                    <a href="#" data-toggle="dropdown" class="dropdown-toggle">账户管理<strong class="caret"></strong></a>
                     <ul class="dropdown-menu">
                         <li>
-                            <a href="#">Action</a>
+                            <a href="#" id = "person_information">个人信息</a>
                         </li>
+                        <!--<li class="divider"></li>-->
                         <li>
-                            <a href="#">Another action</a>
-                        </li>
-                        <li>
-                            <a href="#">Something else here</a>
-                        </li>
-                        <li class="divider">
-                        </li>
-                        <li>
-                            <a href="#">Separated link</a>
+                            <a href="index2.html" id = "logout">注销</a>
                         </li>
                     </ul>
                 </li>
@@ -163,7 +154,7 @@
                     <!--;地图查询开始时间<-->
 
                     <div class="col-md-6">
-                        <div class="input-group date form_datetime" >
+                        <div class="input-group date form_datetime" data-date="2017-11-07 04:00" data-date-format="yyyy-MM-dd hh:mm:s">
                             <span class="input-group-addon">起始时间</span>
                             <input type="text" id="map_begin_time" value="2017-11-07 04:00" class="form-control">
                             <div class="input-group-btn">
@@ -177,7 +168,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="input-group date form_datetime">
+                        <div class="input-group date form_datetime" data-date="2017-11-08 04:00" data-date-format="yyyy-MM-dd hh:mm:s">
                             <span class="input-group-addon">终止时间</span>
                             <input type="text" id="map_end_time" value="2017-11-08 04:00"
                                    class="form-control">
@@ -198,17 +189,25 @@
 
         <div class="col-md-4" style="height: 100%;position: relative">
             <div class="row">
-                <div class="col-md-12" style="height: 70px;">
-                    <div class="row" style = "padding-left: 5px">
+                <div class="col-md-12" style="height: 80px;">
+                    <div class="row" style="padding-bottom: 5px;padding-top: 5px;">
+                        <div class="col-md-4 col-sm-6" style="padding-top: 6px;text-align:center "><span>统计区域选择：</span></div>
+                        <div class="col-md-6 col-sm-6 input-group">
 
-                        <label>统计区域选择：</label>
-                        <select id="type">
-                            <option value="None">None</option>
-                            <option value="Point">Point</option>
-                            <option value="LineString">LineString</option>
-                            <option value="Polygon">Polygon</option>
-                            <option value="Circle">Circle</option>
-                        </select>
+                            <select id="type" style="display:inline-block;vertical-align:middle;" class="form-control">
+                                <option value="None">None</option>
+                                <option value="Point">Point</option>
+                                <option value="LineString">LineString</option>
+                                <option value="Polygon">Polygon</option>
+                                <option value="Circle">Circle</option>
+                            </select>
+                            <span class="input-group-addon" style="background-color: #ffffff">
+                                <input type="image" id="all_view" src ="images/allView.png" style="height: 20px;display:inline-block;vertical-align:middle;">
+                            </span>
+                        </div>
+                        <div class="col-md-2">
+                        </div>
+                        <!--<button type="button" id="all_view">全景</button>-->
                     </div>
                     <!--开始时间<input type="datetime-local" id="pointDate1"/>
                     结束时间<input type="datetime-local" id="pointDate2"/>-->
@@ -253,7 +252,7 @@
                 </div>
             </div>
             <div class="row">
-                <div id="mytable2"  style="min-height:230px;padding-top: 10px;width: 100%">
+                <div id="mytable2" style="min-height:230px;padding-top: 10px;width: 100%">
                 </div>
             </div>
         </div>
@@ -261,7 +260,82 @@
 </div>
 
 <script type="text/javascript">//树形菜单
+
+var usr_id = sessionStorage.getItem('usr_id');
+if(usr_id == null)usr_id = 1;
+var uid = sessionStorage.getItem('uid');
+var default_region = sessionStorage.getItem('default_region');
+if(default_region == null)default_region = 6;
+
 $(document).ready(function () {
+    //获取当前时间
+    var from_time = null;
+    var end_time = null;
+    var get_time_params = "{\"id\":"+usr_id + ",\"default_n\":"+ default_region +"}";
+    $.ajax({
+        url: "http://47.93.237.6:8080//lidar/getData.jsp",
+        type: "POST",
+        //dataType: "JSON",
+        data: {
+            'fname': "\"getDefaultTimeSet\"",
+            'fparam': get_time_params
+        },
+        success: function (data1) {
+            var mydata = JSON.parse(data1);
+            if (mydata.success == 0) {
+                alert("获取当前系统时间失败，请重试");
+            }
+            from_time = new Date(mydata.result.from_time).Format("yyyy-MM-dd hh:mm:ss");
+            end_time = new Date(mydata.result.end_time).Format("yyyy-MM-dd hh:mm:ss");
+
+            document.getElementById("pointDate1").value=from_time;
+            document.getElementById("pointDate2").value=end_time;
+            document.getElementById("map_begin_time").value=from_time;
+            document.getElementById("map_end_time").value=end_time;
+            //$('#map_begin_time').value = from_time;
+            //更新初始的折线图
+            //柱状图x轴，y轴
+            var xAxis = new Array();
+            var yAxis = new Array();
+            var _fparam = "{\"from_time\":\"" + from_time + "\",\"to_time\":\"" + end_time +
+                "\",\"points\":[-0.05,-0.5,130.65,-0.5,130.65,100.06,-0.05,100.06,-0.05,-0.5]}";
+            $.ajax({
+                url: "http://47.93.237.6:8080//lidar/getData.jsp",
+                type: "POST",
+                //dataType: "JSON",
+                data: {
+                    'fname': "getDNforPoly",
+                    /*'fparam': "{\"from_time\":\"2017-11-08 03:00\",\"to_time\":\"2017-11-08 06:30\",\"points\":" +
+                    "[-0.05,-0.5,130.65,-0.5,130.65,100.06,-0.05,100.06,-0.05,-0.5]}"*/
+                    'fparam': _fparam
+                 },
+            success: function (data2) {
+                xAxis.splice(0, xAxis.length);
+                yAxis.splice(0, yAxis.length);
+                var mydata = JSON.parse(data2);
+                $.each(mydata.result.time_list, function (index, item) {
+                    xAxis.push(new Date(item).Format("yyyy-MM-dd hh:mm"));
+                });
+                var num = parseInt(mydata.result.num_pnt);
+                var pointArr = mydata.result.points_dn;
+                refreshLineTreePoint(xAxis, pointArr.length, pointArr);
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                alert("访问服务器失败，请确认输入是否正确后重试--更新初始的折线图");
+            },
+                timeout: 8000
+            });
+
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+            alert("访问服务器失败，请重试");
+        },
+        timeout: 3000
+    });
+
+
+
+    //树形菜单
     $.ajax({
         url: "http://47.93.237.6:8080//lidar/getData.jsp",
         type: "POST",
@@ -270,39 +344,42 @@ $(document).ready(function () {
             'fname': '"getTreeTitle"',
             'fparam': '{}'
         },
+        beforeSend: function (XMLHttpRequest) {
+            XMLHttpRequest.setRequestHeader("uid", uid);
+        },
         success: function (data1) {
             var mydata = JSON.parse(data1);
             if (mydata.success == 0) {
-                alert("访问服务器成功，但是没有数据或者参数构造出错");
+                alert("请求树形列表数据失败，请重试");
+                return;
             }
             var mId = new Array();//监测区域id
+            var mSubToSupId = new Array();//一个监测区域父类数组，下标为mId的下标，值为父类id
             var mIdFlag = new Array();//按钮状态数组
-            var mMap = {};
-            var mSupId = mydata.result.sup_id;
+            var mSupId = mydata.result.sup_id;//监测区域父类id
+            var mGeoregister = new Array();//监测区域附带的地理坐标数组
             $.each(mydata.result.sup, function (i, p) {
-                var p1 = "<li id='p" + i + "' style='cursor: pointer;'>" + "<a id='ps" + i + "' href='#' style='color:#ffffff;background-color: #363c3e;border-radius: 0%;'>" + p + "</a>";
+                var p1 = "<li id='p" + mSupId[i] + "' style='cursor: pointer;'>" + "<a id='ps" + i + "' href='#' style='color:#ffffff;background-color: #363c3e;border-radius: 0%;'>" + p + "</a>";
                 $('#parent').append(p1);
                 $.each(mydata.result.sub, function (j, s) {
                     if (i == j) {
-                        var strs = new Array(); //定义一数组
-                        strs = s.split(","); //字符分割
-                        var temp = strs.toString().split("\"");//字符串提取
                         var mName = new Array();//监测区域name
-                        var index = 1;
-                        while (index + 4 <= temp.length) {
-                            mId.push(temp[index]);
-                            mName.push(temp[index + 2]);
-                            mMap[temp[index + 2]] = temp[index];
-                            index += 4;
+                        var mID = new Array();//监测区域ID(局部使用)
+                        for (var index = 0; index < s.length; ++index) {
+                            mId.push(s[index].id);
+                            mName.push(s[index].name);
+                            mID.push(s[index].id);
+                            mSubToSupId.push(mSupId[i]);
+                            mGeoregister.push(s[index].georegister);
                         }
                         var ms = "";
                         $.each(mName, function (k, m) {
                             if (k == 0) ms += "<ul id='pu" + i + "' class='nav nav-pills nav-stacked'>";
-                            ms = ms + "<li style='padding-left: 20px;margin-top: 0;background-color: #31b0d5;' id='map" + mMap[m] + "'>" +
-                                "<a href='#' style='color:#ffffff;background-color: #31b0d5;border-radius: 0%;'>" + m + "</a></li>";
+                            ms = ms + "<li style='padding-left: 20px;margin-top: 0;background-color: #31b0d5;' id='map" + mID[k] + "'>" +
+                                "<a  id ='_map" +mID[k] +"' href='#' style='color:#ffffff;background-color: #31b0d5;border-radius: 0%;'>" + m + "</a></li>";
                         });
                         ms += "</ul>";
-                        $('#p' + i).append(ms);
+                        $('#p' + mSupId[i]).append(ms);
                     }
                 });
                 $('#parent').append("</li>");
@@ -316,7 +393,7 @@ $(document).ready(function () {
             }
             $.each(mId, function (r, t) {
                 $('#map' + t).on("click", function () {
-                    if (mIdFlag[r] == 0) {
+                    if (mIdFlag[r] == 0) {//是否已经点击 ==0为未点击
                         var fp = "{\"id\":" + t + "}";
                         $.ajax({
                             url: "http://47.93.237.6:8080//lidar/getData.jsp",
@@ -326,14 +403,42 @@ $(document).ready(function () {
                                 'fname': "\"getRegionDetails\"",
                                 'fparam': fp
                             },
-                            success: function (data1) {
-                                var mydata = JSON.parse(data1);
+                            success: function (data2) {
+                                var mydata = JSON.parse(data2);
                                 if (mydata.success == 0) {
-                                    alert("访问服务器成功，但是没有数据或者参数构造出错");
+                                    alert("查看重点监测区域失败，请重试");
+                                    return;
                                 }
                                 var geometryType = "POLYGON";
                                 var geometryData = new Array();
                                 geometryData = mydata.result.geom;
+                                //修改地图查询的时间
+                                document.getElementById("map_begin_time").value=mydata.result.from_time;
+                                document.getElementById("map_end_time").value=mydata.result.end_time;
+
+                                var map_from_time = new Date(mydata.result.from_time).Format("yyyy-MM-dd hh:mm:ss");
+                                var map_end_time = new Date(mydata.result.end_time).Format("yyyy-MM-dd hh:mm:ss");
+
+                                //修改详细图层
+                                var _time = "begin_time:\'" + map_from_time + "\';end_time:\'" + map_end_time
+                                    + "\';x1:8;y1:35;x2:40;y2:80;"; + "r_id:" + mSubToSupId[r];
+                                /*+ ";json:\'{\"pnts\":" + arrayToString(mGeoregister[r].pnts) + "}\'";*/
+                                detail_map.setSource(new ol.source.ImageWMS({
+                                    ratio: 1,
+                                    url: 'http://47.93.237.6:8080/map/lidar/wms',
+                                    params: {
+                                        'FORMAT': format,
+                                        'VERSION': '1.1.1',
+                                        STYLES: '',
+                                        /*'BBOX':'[-0.05, -0.5,130.65, 100.06]',*/
+                                        'SRS':'EPSG:404000',
+                                        'WIDTH':'768',
+                                        'HEIGHT':'511',
+                                        VIEWPARAMS: _time, //需要动态修改
+                                        LAYERS: 'lidar:detail_map'
+                                    }
+                                }));
+
                                 drawByPoints(geometryType, geometryData);
                             },
                             error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -341,29 +446,199 @@ $(document).ready(function () {
                             },
                             timeout: 3000
                         });
+
+                        //修改地图背景
+                        var mLayer = "lidar:p" + mSubToSupId[r];
+                        background.setSource(new ol.source.ImageWMS({
+                            ratio:1,
+                            url: 'http://47.93.237.6:8080/map/lidar/wms',
+                            params: {
+                                'FORMAT': format,
+                                'VERSION': '1.1.1',
+                                /*'BBOX':'[-0.05, -0.5,130.65, 100.06]',*/
+                                'SRS':'EPSG:404000',
+                                'WIDTH':'768',
+                                'HEIGHT':'511',
+                                LAYERS: mLayer
+                            }
+                        }));
+
+
+
+                        //以前获取当前时间的操作
+                        /*$.ajax({
+                            url: "http://47.93.237.6:8080//lidar/getData.jsp",
+                            type: "POST",
+                            //dataType: "JSON",
+                            data: {
+                                'fname': "\"getDefaultTimeSet\"",
+                                'fparam': fp
+                            },
+                            success: function (data1) {
+                                var mydata = JSON.parse(data1);
+                                if (mydata.success == 0) {
+                                    alert("获取当前系统时间失败，请重试");
+                                }
+                                from_time = new Date(mydata.result.from_time).Format("yyyy-MM-dd hh:mm:ss");
+                                end_time = new Date(mydata.result.end_time).Format("yyyy-MM-dd hh:mm:ss");
+
+                                document.getElementById("pointDate1").value=from_time;
+                                document.getElementById("pointDate2").value=end_time;
+                                //$('#map_begin_time').value = from_time;
+
+                                var _time = "begin_time:\'" + from_time + "\';end_time:\'" + end_time
+                                    + "\';x1:8;y1:35;x2:40;y2:80;"; + "r_id:" + mSubToSupId[r];
+                                    /!*+ ";json:\'{\"pnts\":" + arrayToString(mGeoregister[r].pnts) + "}\'";*!/
+
+                                detail_map.setSource(new ol.source.ImageWMS({
+                                    ratio: 1,
+                                    url: 'http://47.93.237.6:8080/map/lidar/wms',
+                                    params: {
+                                        'FORMAT': format,
+                                        'VERSION': '1.1.1',
+                                        STYLES: '',
+                                        'BBOX':'[-0.05, -0.5,130.65, 100.06]',
+                                        'SRS':'EPSG:404000',
+                                        'WIDTH':'768',
+                                        'HEIGHT':'511',
+                                        VIEWPARAMS: _time, //需要动态修改
+                                        LAYERS: 'lidar:detail_map'
+                                    }
+                                }));
+
+                                //更新初始的折线图
+                                //柱状图x轴，y轴
+                                var xAxis = new Array();
+                                var yAxis = new Array();
+                                var _fparam = "{\"from_time\":\"" + new Date($("#pointDate1").val()).Format("yyyy-MM-dd hh:mm")
+                                    + "\",\"to_time\":\"" + new Date($("#pointDate2").val()).Format("yyyy-MM-dd hh:mm") +
+                                    "\",\"points\":[-0.05,-0.5,130.65,-0.5,130.65,100.06,-0.05,100.06,-0.05,-0.5]}";
+                                $.ajax({
+                                    url: "http://47.93.237.6:8080//lidar/getData.jsp",
+                                    type: "POST",
+                                    //dataType: "JSON",
+                                    data: {
+                                        'fname': "getDNforPoly",
+                                        /!*'fparam': "{\"from_time\":\"2017-11-08 03:00\",\"to_time\":\"2017-11-08 06:30\",\"points\":" +
+                                        "[-0.05,-0.5,130.65,-0.5,130.65,100.06,-0.05,100.06,-0.05,-0.5]}"*!/
+                                        'fparam': _fparam
+                                    },
+                                    success: function (data2) {
+                                        xAxis.splice(0, xAxis.length);
+                                        yAxis.splice(0, yAxis.length);
+                                        var mydata = JSON.parse(data2);
+                                        $.each(mydata.result.time_list, function (index, item) {
+                                            xAxis.push(new Date(item).Format("yyyy-MM-dd hh:mm"));
+                                        });
+                                        var num = parseInt(mydata.result.num_pnt);
+                                        var pointArr = mydata.result.points_dn;
+                                        refreshLineTreePoint(xAxis, pointArr.length, pointArr);
+                                    },
+                                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                        alert("访问服务器失败，请确认输入是否正确后重试--更新初始的折线图");
+                                    },
+                                    timeout: 8000
+                                });
+
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                alert("访问服务器失败，请重试");
+                            },
+                            timeout: 3000
+                        });*/
+
+                        //清除其他按钮被点击状态
+                        for (var mIndex = 0, mLen = mIdFlag.length; mIndex < mLen; mIndex++) {
+                            $('#_map' + mId[mIndex]).css("color","#ffffff");
+                            mIdFlag[mIndex] = 0;
+                        }
                         mIdFlag[r] = 1;
+                        //切换按钮颜色
+                        $('#_map' + t).css("color","red");
                     } else {
+                        //切换按钮颜色
+                        $('#_map' + t).css("color",'#ffffff');
+
                         source2.clear();
                         source2.refresh();
                         mIdFlag[r] = 0;
-                        var bounds = [-0.05, -0.5,
-                            130.65, 100.06];
+                        var bounds = [-0.05, -0.5, 130.65, 100.06];
                         map.getView().fit(bounds, map.getSize());
                     }
                 });
             });
+
+            //加载用户默认区域
+            /*for(var _index = 0; _index<mId.length; ++i) {//是默认检测区域按钮设置为被按
+                if (mId[_index] == default_region){
+                    mIdFlag[_index] = 1;
+                    break;
+                }
+            }*/
+            $('#_map' + default_region).css("color",'red');//切换按钮颜色
         },
         timeout: 3000
-    })
+    });
+
+    var _fp = "{\"id\":" + default_region + "}";
+    $.ajax({
+        url: "http://47.93.237.6:8080//lidar/getData.jsp",
+        type: "POST",
+        //dataType: "JSON",
+        data: {
+            'fname': "\"getRegionDetails\"",
+            'fparam': _fp
+        },
+        success: function (data1) {
+            var mydata = JSON.parse(data1);
+            if (mydata.success == 0) {
+                alert("查看重点监测区域失败，请重试");
+                return;
+            }
+            var geometryType = "POLYGON";
+            var geometryData = new Array();
+            geometryData = mydata.result.geom;
+            //修改地图查询的时间
+            document.getElementById("map_begin_time").value=mydata.result.from_time;
+            document.getElementById("map_end_time").value=mydata.result.end_time;
+
+            drawByPoints(geometryType, geometryData);
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+            alert("访问服务器失败，请重试");
+        },
+        timeout: 3000
+    });
+
 })
+
+//二维数组toString
+function arrayToString ( nums){
+    var _nums = "[";
+    var _x = 0;//行
+    for(;_x<nums.length;++_x){
+        _nums +="[";
+        var _y = 0;//列
+        for(;_y<nums[0].length-1;++_y){
+            _nums = _nums + nums[_x][_y] + ",";
+        }
+        if(_x != nums.length-1) {
+            _nums = _nums + nums[_x][nums[0].length-1] + "],";
+        }else {
+            _nums = _nums + nums[_x][nums[0].length-1] + "]";
+        }
+
+    }
+    _nums += "]";
+    return _nums;
+}
 </script>
 
 <script type="text/javascript">//地图显示
 
 var format = 'image/png';
 //have to be updated bounds when loading
-var bounds = [-0.05, -0.5,
-    130.65, 100.06];
+var bounds = [-0.05, -0.5, 130.65, 100.06];
 
 var mousePositionControl = new ol.control.MousePosition({
     className: 'custom-mouse-position',
@@ -397,31 +672,18 @@ var vector2 = new ol.layer.Vector({
 });
 
 
-var background = new ol.layer.Tile({ //tiled map
-    visible: true,
-    source: new ol.source.TileWMS({
-        url: 'http://47.93.237.6:8080/map/lidar/wms',
-        params: {
-            'FORMAT': format,
-            'VERSION': '1.1.1',
-            tiled: true,
-            STYLES: '',
-            LAYERS: 'lidar:background',
-            //tilesOrigin: -0.05 + "," + -0.5
-        }
-    })
-});
-
-var basic_map = new ol.layer.Image({ //untiled map,简单背景格网图，正方形；可能这个图层不需要，视效率而定
+var background = new ol.layer.Image({
     source: new ol.source.ImageWMS({
-        ratio: 1,
+        ratio:1,
         url: 'http://47.93.237.6:8080/map/lidar/wms',
         params: {
             'FORMAT': format,
             'VERSION': '1.1.1',
-            STYLES: '',
-            VIEWPARAMS: 'time_value:\'2017-11-08 04:00\';x1:8;y1:35;x2:40;y2:80',//需要动态修改
-            LAYERS: 'lidar:basic_map',
+            /*'BBOX':'[-0.05, -0.5,130.65, 100.06]',*/
+            VIEWPARAMS: 'time_value:\'2017-11-08 04:00\';x1:8;y1:35;x2:40;y2:80;' +
+            'width=768;height=511;srs=EPSG:404000',
+            LAYERS: 'lidar:p1'
+            //tilesOrigin: -0.05 + "," + -0.5
         }
     })
 });
@@ -434,7 +696,9 @@ var detail_map = new ol.layer.Image({//untiled map,详细变形图，点图
             'FORMAT': format,
             'VERSION': '1.1.1',
             STYLES: '',
-            VIEWPARAMS: 'time_value:\'2017-11-08 04:00\';x1:8;y1:35;x2:40;y2:80', //需要动态修改
+            /*'BBOX':'[-0.05, -0.5,130.65, 100.06]',*/
+            VIEWPARAMS: 'time_value:\'2017-11-08 04:00\';x1:8;y1:35;x2:40;y2:80;width=768;height=511;' +
+            'srs=EPSG:404000',
             LAYERS: 'lidar:detail_map',
         }
     })
@@ -564,7 +828,7 @@ map.on('singleclick', function (evt) {
                 map.addOverlay(overlay);
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
-                alert("访问服务器成功，但是没有数据");
+                alert("访问服务器失败，请确认输入是否正确后重试--地图点击");
             },
             timeout: 3000
         });
@@ -627,10 +891,16 @@ function removeAllFeature() {
     }
 }
 
+//全景按钮
+$("#all_view").on("click", function () {
+    var bounds = [-0.5,-0.5,799.5,532.5];
+    map.getView().fit(bounds, map.getSize());
+});
+
 </script>
 
 
-<script src="http://cdn.bootcss.com/jquery/1.9.1/jquery.min.js"></script>
+<!--<script src="http://cdn.bootcss.com/jquery/1.9.1/jquery.min.js"></script>-->
 <script src="https://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
 <script src="js/bootstrap-datetimepicker.min.js"></script>
 <script type="text/javascript">//地图查询与刷新
@@ -661,7 +931,32 @@ $('#map_begin_time')
         startDate: "2013-11-08 03:00",
         minuteStep: 10,
         pickerPosition: "bottom-left"
+    })
+    .on('hide', function (ev) {
+        if ($("#map_begin_time").val().toString()=="" || $("#map_end_time").val().toString()=="") {
+
+        } else if (new Date($("#map_begin_time").val()).Format("yyyy-MM-dd hh:mm") > new Date($("#map_end_time").val()).Format("yyyy-MM-dd hh:mm")){
+            alert("开始时间大于结束时间，请重试");
+        }
+        else {
+            var time = "begin_time:\'" + new Date($("#map_begin_time").val()).Format("yyyy-MM-dd hh:mm")
+                + "\';end_time:\'" + new Date($("#map_end_time").val()).Format("yyyy-MM-dd hh:mm")
+                + "\';x1:8;y1:35;x2:40;y2:80";
+            window.alert(time);
+            detail_map.setSource(new ol.source.ImageWMS({
+                ratio: 1,
+                url: 'http://47.93.237.6:8080/map/lidar/wms',
+                params: {
+                    'FORMAT': format,
+                    'VERSION': '1.1.1',
+                    STYLES: '',
+                    VIEWPARAMS: time, //需要动态修改
+                    LAYERS: 'lidar:detail_map'
+                }
+            }));
+        }
     });
+
 
 //日期填完自动发送ajax请求
 $('#map_end_time')
@@ -674,10 +969,13 @@ $('#map_end_time')
         pickerPosition: "bottom-left"
     })
     .on('hide', function (ev) {
-        alert("开始时间：" + $("#map_begin_time").val() + "结束时间： " + $("#map_end_time").val());
-        if (new Date($("#map_begin_time").val()).Format("yyyy-MM-dd hh:mm") > new Date($("#map_end_time").val()).Format("yyyy-MM-dd hh:mm")) {
-            alert("开始时间小于结束时间，请重新输入");
-        } else {
+        //alert("开始时间：" + $("#map_begin_time").val() + "结束时间： " + $("#map_end_time").val());
+        if ($("#map_begin_time").val().toString()=="" || $("#map_end_time").val().toString()=="") {
+
+        } else if (new Date($("#map_begin_time").val()).Format("yyyy-MM-dd hh:mm") > new Date($("#map_end_time").val()).Format("yyyy-MM-dd hh:mm")){
+            alert("开始时间大于结束时间，请重试");
+        }
+         else {
             var time = "begin_time:\'" + new Date($("#map_begin_time").val()).Format("yyyy-MM-dd hh:mm")
                 + "\';end_time:\'" + new Date($("#map_end_time").val()).Format("yyyy-MM-dd hh:mm")
                 + "\';x1:8;y1:35;x2:40;y2:80";
@@ -750,6 +1048,16 @@ $('#pointDate1')
         startDate: "2013-11-08 03:00",
         minuteStep: 10,
         pickerPosition: "bottom-left"
+    })
+    .on('hide', function (ev) {
+        //alert("开始时间：" + $("#pointDate1").val() + "结束时间： " + $("#pointDate2").val());
+        if ($("#pointDate1").val().toString()=="" || $("#pointDate2").val().toString()=="") {
+
+        } else if (new Date($("#pointDate1").val()).Format("yyyy-MM-dd hh:mm") > new Date($("#pointDate2").val()).Format("yyyy-MM-dd hh:mm")){
+            alert("开始时间大于结束时间，请重试");
+        } else {
+            changeLineGraph();
+        }
     });
 
 $('#pointDate2')
@@ -762,9 +1070,11 @@ $('#pointDate2')
         pickerPosition: "bottom-left"
     })
     .on('hide', function (ev) {
-        alert("开始时间：" + $("#pointDate1").val() + "结束时间： " + $("#pointDate2").val());
-        if (new Date($("#map_begin_time").val()).Format("yyyy-MM-dd hh:mm") > new Date($("#map_end_time").val()).Format("yyyy-MM-dd hh:mm")) {
-            alert("开始时间小于结束时间，请重新输入");
+        //alert("开始时间：" + $("#pointDate1").val() + "结束时间： " + $("#pointDate2").val());
+        if ($("#pointDate1").val().toString()=="" || $("#pointDate2").val().toString()=="") {
+
+        } else if (new Date($("#pointDate1").val()).Format("yyyy-MM-dd hh:mm") > new Date($("#pointDate2").val()).Format("yyyy-MM-dd hh:mm")){
+            alert("开始时间大于结束时间，请重试");
         } else {
             changeLineGraph();
         }
@@ -779,25 +1089,29 @@ $('#btn_de4').click(function () {
 });
 
 
-
 //加载默认折线图，为整个区域的平均值
 $(document).ready(function () {
     //柱状图x轴，y轴
     var xAxis = new Array();
     var yAxis = new Array();
+    var _fparam = "{\"from_time\":\"2017-11-08 03:00\",\"to_time\":\"2017-11-08 06:30\",\"points\":" +
+        "[-0.05,-0.5,130.65,-0.5,130.65,100.06,-0.05,100.06,-0.05,-0.5]}";
     $.ajax({
         url: "http://47.93.237.6:8080//lidar/getData.jsp",
         type: "POST",
         //dataType: "JSON",
         data: {
             'fname': "getDNforPoly",
-            'fparam': "{\"from_time\":\"2017-11-08 03:00\",\"to_time\":\"2017-11-08 06:30\",\"points\":" +
-            "[-0.05,-0.5,130.65,-0.5,130.65,100.06,-0.05,100.06,-0.05,-0.5]}"
+            'fparam': _fparam
         },
         success: function (data1) {
             xAxis.splice(0, xAxis.length);
             yAxis.splice(0, yAxis.length);
             var mydata = JSON.parse(data1);
+            if (mydata.success == 0){
+                alert("加载折线图数据失败，请重试");
+                return;
+            }
             $.each(mydata.result.time_list, function (index, item) {
                 xAxis.push(new Date(item).Format("yyyy-MM-dd hh:mm"));
             });
@@ -806,14 +1120,14 @@ $(document).ready(function () {
             refreshLineTreePoint(xAxis, pointArr.length, pointArr);
         },
         error: function (XMLHttpRequest, textStatus, errorThrown) {
-            alert("访问服务器成功，但是没有数据");
+            alert("访问服务器失败，请确认输入是否正确后重试--加载默认折线图" + errorThrown);
         },
-        timeout: 5000
+        timeout: 100000
     });
 });
 
-//更新折线图
-$("#searchPoint").on("click", changeLineGraph);
+//按钮更新折线图
+//$("#searchPoint").on("click", changeLineGraph);
 
 function changeLineGraph() {
 
@@ -938,7 +1252,7 @@ function changeLineGraph() {
             alert(data1);
             var mydata = JSON.parse(data1);
             if (mydata.success == 0) {
-                alert("访问服务器成功，但是没有数据或者参数构造出错");
+                alert("加载折线图数据失败，请重试");
             }
             $.each(mydata.result.time_list, function (index, item) {
                 xAxis.push(new Date(item).Format("yyyy-MM-dd hh:mm"));
@@ -950,7 +1264,7 @@ function changeLineGraph() {
         error: function (XMLHttpRequest, textStatus, errorThrown) {
             alert("访问服务器失败，请重试");
         },
-        timeout: 3000
+        timeout: 8000
     });
 }
 
@@ -999,12 +1313,12 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
         });
 
     }
-    mchartgap = parseInt(mchartgap/6);
+    mchartgap = parseInt(mchartgap / 6);
 
     myChart1.setOption({
         title: {
-            x:'25',
-            y:'10',
+            x: '25',
+            y: '10',
             show: true,
             text: '形变速度',
             textStyle: {
@@ -1015,10 +1329,11 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
             /*left: 'center'*/
         },
         grid: {
-            x:25,
-            y:5,
-            x2:25,
-            y2:40},
+            x: 25,
+            y: 5,
+            x2: 25,
+            y2: 40
+        },
         tooltip: {
             trigger: 'axis'
         },
@@ -1047,7 +1362,7 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
                     formatter: function (value, index) {
                         // 格式化成月/日，只在第一个刻度显示年份
                         var date = new Date(value);
-                        var texts = "(" + date.getDate() +")";
+                        var texts = "(" + date.getDate() + ")";
                         texts = texts + date.getHours();
                         var tempMinutes = date.getMinutes();
                         if (tempMinutes === 0) {
@@ -1077,8 +1392,8 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
     var myChart2 = require('echarts').init(document.getElementById("mytable2"));
     myChart2.setOption({
         title: {
-            x:'25',
-            y:'10',
+            x: '25',
+            y: '10',
             show: true,
             text: '形变总量',
             textStyle: {
@@ -1088,10 +1403,11 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
             }
         },
         grid: {
-            x:25,
-            y:5,
-            x2:25,
-            y2:40},
+            x: 25,
+            y: 5,
+            x2: 25,
+            y2: 40
+        },
         tooltip: {
             trigger: 'axis'
         },
@@ -1120,7 +1436,7 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
                     formatter: function (value, index) {
                         // 格式化成月/日，只在第一个刻度显示年份
                         var date = new Date(value);
-                        var texts = "(" + date.getDate() +")";
+                        var texts = "(" + date.getDate() + ")";
                         texts = texts + date.getHours();
                         var tempMinutes = date.getMinutes();
                         if (tempMinutes === 0) {
@@ -1180,6 +1496,16 @@ function drawByPoints(geometryTye, points) {
     var ext = feature.getGeometry().getExtent();
     map.getView().fit(ext, map.getSize());
 }
+</script>
+
+<script type="text/javascript">//导航栏响应
+$('#logout').click(function () {//注销
+    sessionStorage.clear();
+});
+
+$('#person_information').click(function () {//查看用户信息
+    sessionStorage.clear();
+});
 </script>
 
 </body>

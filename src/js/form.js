@@ -1,5 +1,6 @@
 (function(){
     var hintText={user_email:{hint:"⚠️邮箱是您登录的唯一账号，请谨慎填写",right:"√邮箱格式正确",wrong:"×邮箱格式有误，请重新输入"},
+            login_email:{hint:"⚠️请输入您的邮箱号",right:"√邮箱格式正确",wrong:"×邮箱格式有误，请重新输入"},
             user_name:{hint:"⚠️请输入3-12个字符的用户名（包括字母/数字/下划线）",right:"√用户名格式正确",wrong:"×用户名格式有误，请重新输入"},
             name:{hint:"⚠️请输入3-12姓名",right:"√姓名输入正确",wrong:"×姓名输入有误，请重新输入"},
             address:{hint:"⚠️请输入正确地址",right:"√地址输入正确",wrong:"×地址输入有误，请重新输入"},
@@ -17,7 +18,7 @@
             node["on" + event] = func;
     };
     function regValue(id,i){
-        var flag=false,
+        var flag=true,
         input=document.getElementById(id),
         value=input.value;
         switch (id){
@@ -102,7 +103,6 @@
     }
     regEvent(document.getElementById("submit"),"click",function(e){
         if(index!==0){
-            alert(index)
             e.preventDefault();
             alert("您的输入有误，请检查并重新输入！");
             return false;
