@@ -393,6 +393,11 @@ $(document).ready(function () {
             }
             $.each(mId, function (r, t) {
                 $('#map' + t).on("click", function () {
+                    //清楚画图查询折线图的图层
+                    old_feature = null;
+                    source.clear();
+                    source.refresh();
+
                     if (mIdFlag[r] == 0) {//是否已经点击 ==0为未点击
                         var fp = "{\"id\":" + t + "}";
                         $.ajax({
@@ -462,90 +467,6 @@ $(document).ready(function () {
                                 LAYERS: mLayer
                             }
                         }));
-
-
-
-                        //以前获取当前时间的操作
-                        /*$.ajax({
-                            url: "http://47.93.237.6:8080//lidar/getData.jsp",
-                            type: "POST",
-                            //dataType: "JSON",
-                            data: {
-                                'fname': "\"getDefaultTimeSet\"",
-                                'fparam': fp
-                            },
-                            success: function (data1) {
-                                var mydata = JSON.parse(data1);
-                                if (mydata.success == 0) {
-                                    alert("获取当前系统时间失败，请重试");
-                                }
-                                from_time = new Date(mydata.result.from_time).Format("yyyy-MM-dd hh:mm:ss");
-                                end_time = new Date(mydata.result.end_time).Format("yyyy-MM-dd hh:mm:ss");
-
-                                document.getElementById("pointDate1").value=from_time;
-                                document.getElementById("pointDate2").value=end_time;
-                                //$('#map_begin_time').value = from_time;
-
-                                var _time = "begin_time:\'" + from_time + "\';end_time:\'" + end_time
-                                    + "\';x1:8;y1:35;x2:40;y2:80;"; + "r_id:" + mSubToSupId[r];
-                                    /!*+ ";json:\'{\"pnts\":" + arrayToString(mGeoregister[r].pnts) + "}\'";*!/
-
-                                detail_map.setSource(new ol.source.ImageWMS({
-                                    ratio: 1,
-                                    url: 'http://47.93.237.6:8080/map/lidar/wms',
-                                    params: {
-                                        'FORMAT': format,
-                                        'VERSION': '1.1.1',
-                                        STYLES: '',
-                                        'BBOX':'[-0.05, -0.5,130.65, 100.06]',
-                                        'SRS':'EPSG:404000',
-                                        'WIDTH':'768',
-                                        'HEIGHT':'511',
-                                        VIEWPARAMS: _time, //需要动态修改
-                                        LAYERS: 'lidar:detail_map'
-                                    }
-                                }));
-
-                                //更新初始的折线图
-                                //柱状图x轴，y轴
-                                var xAxis = new Array();
-                                var yAxis = new Array();
-                                var _fparam = "{\"from_time\":\"" + new Date($("#pointDate1").val()).Format("yyyy-MM-dd hh:mm")
-                                    + "\",\"to_time\":\"" + new Date($("#pointDate2").val()).Format("yyyy-MM-dd hh:mm") +
-                                    "\",\"points\":[-0.05,-0.5,130.65,-0.5,130.65,100.06,-0.05,100.06,-0.05,-0.5]}";
-                                $.ajax({
-                                    url: "http://47.93.237.6:8080//lidar/getData.jsp",
-                                    type: "POST",
-                                    //dataType: "JSON",
-                                    data: {
-                                        'fname': "getDNforPoly",
-                                        /!*'fparam': "{\"from_time\":\"2017-11-08 03:00\",\"to_time\":\"2017-11-08 06:30\",\"points\":" +
-                                        "[-0.05,-0.5,130.65,-0.5,130.65,100.06,-0.05,100.06,-0.05,-0.5]}"*!/
-                                        'fparam': _fparam
-                                    },
-                                    success: function (data2) {
-                                        xAxis.splice(0, xAxis.length);
-                                        yAxis.splice(0, yAxis.length);
-                                        var mydata = JSON.parse(data2);
-                                        $.each(mydata.result.time_list, function (index, item) {
-                                            xAxis.push(new Date(item).Format("yyyy-MM-dd hh:mm"));
-                                        });
-                                        var num = parseInt(mydata.result.num_pnt);
-                                        var pointArr = mydata.result.points_dn;
-                                        refreshLineTreePoint(xAxis, pointArr.length, pointArr);
-                                    },
-                                    error: function (XMLHttpRequest, textStatus, errorThrown) {
-                                        alert("访问服务器失败，请确认输入是否正确后重试--更新初始的折线图");
-                                    },
-                                    timeout: 8000
-                                });
-
-                            },
-                            error: function (XMLHttpRequest, textStatus, errorThrown) {
-                                alert("访问服务器失败，请重试");
-                            },
-                            timeout: 3000
-                        });*/
 
                         //清除其他按钮被点击状态
                         for (var mIndex = 0, mLen = mIdFlag.length; mIndex < mLen; mIndex++) {
@@ -942,7 +863,7 @@ $('#map_begin_time')
             var time = "begin_time:\'" + new Date($("#map_begin_time").val()).Format("yyyy-MM-dd hh:mm")
                 + "\';end_time:\'" + new Date($("#map_end_time").val()).Format("yyyy-MM-dd hh:mm")
                 + "\';x1:8;y1:35;x2:40;y2:80";
-            window.alert(time);
+            //window.alert(time);
             detail_map.setSource(new ol.source.ImageWMS({
                 ratio: 1,
                 url: 'http://47.93.237.6:8080/map/lidar/wms',
@@ -1090,7 +1011,7 @@ $('#btn_de4').click(function () {
 
 
 //加载默认折线图，为整个区域的平均值
-$(document).ready(function () {
+/*$(document).ready(function () {
     //柱状图x轴，y轴
     var xAxis = new Array();
     var yAxis = new Array();
@@ -1124,7 +1045,7 @@ $(document).ready(function () {
         },
         timeout: 100000
     });
-});
+});*/
 
 //按钮更新折线图
 //$("#searchPoint").on("click", changeLineGraph);
