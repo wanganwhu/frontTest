@@ -267,6 +267,8 @@ var uid = sessionStorage.getItem('uid');
 var default_region = sessionStorage.getItem('default_region');
 if(default_region == null)default_region = 6;
 
+var globalEchartData = null;//初始的全地图的echart数据
+
 $(document).ready(function () {
     //获取当前时间
     var from_time = null;
@@ -312,12 +314,12 @@ $(document).ready(function () {
             success: function (data2) {
                 xAxis.splice(0, xAxis.length);
                 yAxis.splice(0, yAxis.length);
-                var mydata = JSON.parse(data2);
-                $.each(mydata.result.time_list, function (index, item) {
+                globalEchartData = JSON.parse(data2);
+                $.each(globalEchartData.result.time_list, function (index, item) {
                     xAxis.push(new Date(item).Format("yyyy-MM-dd hh:mm"));
                 });
-                var num = parseInt(mydata.result.num_pnt);
-                var pointArr = mydata.result.points_dn;
+                var num = parseInt(globalEchartData.result.num_pnt);
+                var pointArr = globalEchartData.result.points_dn;
                 refreshLineTreePoint(xAxis, pointArr.length, pointArr);
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -476,6 +478,18 @@ $(document).ready(function () {
                         mIdFlag[r] = 1;
                         //切换按钮颜色
                         $('#_map' + t).css("color","red");
+
+                        //将折线图更新为初始状态
+                        //柱状图x轴，y轴
+                        var xAxis = new Array();
+                        var yAxis = new Array();
+                        $.each(globalEchartData.result.time_list, function (index, item) {
+                            xAxis.push(new Date(item).Format("yyyy-MM-dd hh:mm"));
+                        });
+                        var num = parseInt(globalEchartData.result.num_pnt);
+                        var pointArr = globalEchartData.result.points_dn;
+                        refreshLineTreePoint(xAxis, pointArr.length, pointArr);
+
                     } else {
                         //切换按钮颜色
                         $('#_map' + t).css("color",'#ffffff');
@@ -489,13 +503,6 @@ $(document).ready(function () {
                 });
             });
 
-            //加载用户默认区域
-            /*for(var _index = 0; _index<mId.length; ++i) {//是默认检测区域按钮设置为被按
-                if (mId[_index] == default_region){
-                    mIdFlag[_index] = 1;
-                    break;
-                }
-            }*/
             $('#_map' + default_region).css("color",'red');//切换按钮颜色
         },
         timeout: 3000
@@ -762,6 +769,8 @@ var typeSelect = document.getElementById('type');
 var draw; // global so we can remove it later
 var old_feature;
 
+var points_features = new Array();
+
 function addInteraction() {
     var value = typeSelect.value;
     if (value !== 'None') {
@@ -780,8 +789,32 @@ function addInteraction() {
                     }
                     old_feature = evt.feature;
                 }, this);
+        } else {
+            draw.on('drawstart',
+                function (evt) {
+                    points_features.push(evt.feature);
+                }, this);
         }
         map.addInteraction(draw);
+
+
+        ///画图结束时进行更新折线图的请求
+        draw.on('drawend',
+            function (evt) {
+                if ($("#pointDate1").val().toString()=="" || $("#pointDate2").val().toString()==""
+                || evt.feature.getGeometry() == null) {
+
+                } else if (new Date($("#pointDate1").val()).Format("yyyy-MM-dd hh:mm") > new Date($("#pointDate2").val()).Format("yyyy-MM-dd hh:mm")){
+                    alert("开始时间大于结束时间，请重试");
+                } else {
+                    if (value == 'Point') {
+                        changeLineGraph(points_features);
+                    }else {
+                        changeLineGraph(evt.feature);
+                    }
+
+                }
+            }, this);
     }
 }
 
@@ -792,10 +825,12 @@ function addInteraction() {
 typeSelect.onchange = function () {
     removeAllFeature();
     old_feature = null;
+    points_features = [];
     map.removeInteraction(draw);
     addInteraction();
+
 };
-addInteraction();
+//addInteraction();
 
 
 //清空所有图形
@@ -900,7 +935,7 @@ $('#map_end_time')
             var time = "begin_time:\'" + new Date($("#map_begin_time").val()).Format("yyyy-MM-dd hh:mm")
                 + "\';end_time:\'" + new Date($("#map_end_time").val()).Format("yyyy-MM-dd hh:mm")
                 + "\';x1:8;y1:35;x2:40;y2:80";
-            window.alert(time);
+            //window.alert(time);
             detail_map.setSource(new ol.source.ImageWMS({
                 ratio: 1,
                 url: 'http://47.93.237.6:8080/map/lidar/wms',
@@ -977,7 +1012,7 @@ $('#pointDate1')
         } else if (new Date($("#pointDate1").val()).Format("yyyy-MM-dd hh:mm") > new Date($("#pointDate2").val()).Format("yyyy-MM-dd hh:mm")){
             alert("开始时间大于结束时间，请重试");
         } else {
-            changeLineGraph();
+            changeLineGraph(null);
         }
     });
 
@@ -997,7 +1032,7 @@ $('#pointDate2')
         } else if (new Date($("#pointDate1").val()).Format("yyyy-MM-dd hh:mm") > new Date($("#pointDate2").val()).Format("yyyy-MM-dd hh:mm")){
             alert("开始时间大于结束时间，请重试");
         } else {
-            changeLineGraph();
+            changeLineGraph(null);
         }
     });
 
@@ -1009,54 +1044,27 @@ $('#btn_de4').click(function () {
     $('#pointDate2').val("");
 });
 
-
-//加载默认折线图，为整个区域的平均值
-/*$(document).ready(function () {
-    //柱状图x轴，y轴
-    var xAxis = new Array();
-    var yAxis = new Array();
-    var _fparam = "{\"from_time\":\"2017-11-08 03:00\",\"to_time\":\"2017-11-08 06:30\",\"points\":" +
-        "[-0.05,-0.5,130.65,-0.5,130.65,100.06,-0.05,100.06,-0.05,-0.5]}";
-    $.ajax({
-        url: "http://47.93.237.6:8080//lidar/getData.jsp",
-        type: "POST",
-        //dataType: "JSON",
-        data: {
-            'fname': "getDNforPoly",
-            'fparam': _fparam
-        },
-        success: function (data1) {
-            xAxis.splice(0, xAxis.length);
-            yAxis.splice(0, yAxis.length);
-            var mydata = JSON.parse(data1);
-            if (mydata.success == 0){
-                alert("加载折线图数据失败，请重试");
-                return;
-            }
-            $.each(mydata.result.time_list, function (index, item) {
-                xAxis.push(new Date(item).Format("yyyy-MM-dd hh:mm"));
-            });
-            var num = parseInt(mydata.result.num_pnt);
-            var pointArr = mydata.result.points_dn;
-            refreshLineTreePoint(xAxis, pointArr.length, pointArr);
-        },
-        error: function (XMLHttpRequest, textStatus, errorThrown) {
-            alert("访问服务器失败，请确认输入是否正确后重试--加载默认折线图" + errorThrown);
-        },
-        timeout: 100000
-    });
-});*/
-
 //按钮更新折线图
 //$("#searchPoint").on("click", changeLineGraph);
 
-function changeLineGraph() {
+function changeLineGraph(mFeatures) {
 
     var mfname = "";//查询数据用于更新折线图
     var mfparam = "";
 
-    var mfname = "\addNewRegion";//用于添加监控区域
+    var mfname = "addNewRegion";//用于添加监控区域
     var mfparam = "";
+
+    var features = new Array();//地理坐标由此处获取
+    if (mFeatures == null){
+        features = source.getFeatures();
+    } else if (mFeatures.constructor == Array) {
+        features = mFeatures;
+    } else{
+        features.push(mFeatures);
+    }
+
+
 
     var mbeginTime = new Date($("#pointDate1").val()).Format("yyyy-MM-dd hh:mm");
     var mendTime = new Date($("#pointDate2").val()).Format("yyyy-MM-dd hh:mm");
@@ -1068,7 +1076,7 @@ function changeLineGraph() {
 
     switch (selectType) {
         case "None":
-            var features = source.getFeatures();
+
             if (features == null) {
                 return;
             }
@@ -1076,7 +1084,6 @@ function changeLineGraph() {
         //////////////////////////////////////////////////////////////////////////////////
         case "Point":
             mfname = "getDNforpoints";
-            var features = source.getFeatures();
             if (features != null && features.length > 0) {
                 var count = 1;
                 mgeomtry = mgeomtry + "{";
@@ -1092,12 +1099,11 @@ function changeLineGraph() {
                     Math.round(lonlats[0]) + "," + Math.round(lonlats[1]) + "\"";
             }
             mfparam = mfparam + mgeomtry + "}}";
-            alert(mfparam);
+            //alert(mfparam);
             break;
 
         case "LineString":
             mfname = "getDNforline";
-            var features = source.getFeatures();
             mgeomtry += "[";
             if (features != null && features.length > 0) {
                 for (x in features) {
@@ -1111,12 +1117,11 @@ function changeLineGraph() {
                 }
             }
             mfparam = mfparam + mgeomtry + "}";
-            alert(mfparam);
+            //alert(mfparam);
             break;
 
         case "Polygon":
             mfname = "getDNforPoly";
-            var features = source.getFeatures();
             mgeomtry += "[";
             if (features != null && features.length > 0) {
                 for (x in features) {
@@ -1130,12 +1135,11 @@ function changeLineGraph() {
                 }
             }
             mfparam = mfparam + mgeomtry + "}";
-            alert(mfparam);
+            //alert(mfparam);
             break;
 
         case "Circle":
             mfname = "getDNforCircle";
-            var features = source.getFeatures();
             mgeomtry += "{\"center\":";
             if (features != null && features.length > 0) {
                 for (x in features) {
@@ -1149,7 +1153,7 @@ function changeLineGraph() {
                 }
             }
             mfparam = mfparam + mgeomtry + "}}";
-            alert(mfparam);
+            //alert(mfparam);
             break;
         default:
             return;
@@ -1170,7 +1174,7 @@ function changeLineGraph() {
         success: function (data1) {
             xAxis.splice(0, xAxis.length);
             yAxis.splice(0, yAxis.length);
-            alert(data1);
+            //alert(data1);
             var mydata = JSON.parse(data1);
             if (mydata.success == 0) {
                 alert("加载折线图数据失败，请重试");
@@ -1189,7 +1193,21 @@ function changeLineGraph() {
     });
 }
 
+//x轴显示处理
+function filterXAxis(input_list) {
+    var input_list_copy = input_list.slice(0);
+    var max_len=6; //设置一个最大显示的数量
+    if (input_list_copy.length<=max_len) return input_list_copy; //如果没有达到最大显示的数量，直接全部显示
+    var sep=Math.ceil(input_list_copy.length/max_len);
+    for (var i=0;i<input_list_copy.length;i++) {
+        if ((i+1)%sep!=1) input_list_copy[i]=""; //当(i+1)%sep!=1时，横轴不显示
+    }
+    return input_list_copy;
+}
+
+
 function refreshLineTreePoint(_xAxis, _pointNum, _point) {
+    let _xAxis_copy = filterXAxis(_xAxis);
     var myChart1 = require('echarts').init(document.getElementById("mytable1"));
     var _yAxis = new Array();
     var _yAxis2 = new Array();
@@ -1218,8 +1236,6 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
             accumlate += _data[j];
             _data2.push(accumlate);
         }
-        //横坐标间隔
-        mchartgap = _data.length;
         _yAxis.push({
             name: i + 1,
             type: 'line',
@@ -1234,7 +1250,6 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
         });
 
     }
-    mchartgap = parseInt(mchartgap / 6);
 
     myChart1.setOption({
         title: {
@@ -1276,12 +1291,15 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
             {
                 type: 'category',
                 boundaryGap: false,
-                data: _xAxis,
+                data: _xAxis_copy,
                 axisLabel: {
-                    interval: mchartgap,
+                    interval: 0,
                     rotate: 0,
                     formatter: function (value, index) {
                         // 格式化成月/日，只在第一个刻度显示年份
+                        if (value == ""){
+                            return value;
+                        }
                         var date = new Date(value);
                         var texts = "(" + date.getDate() + ")";
                         texts = texts + date.getHours();
@@ -1307,6 +1325,39 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
                 }
             }
         ],
+        tooltip : {         // Option config. Can be overwrited by series or data
+            trigger: 'axis',
+            //show: true,   //default true
+            showDelay: 0,
+            hideDelay: 50,
+            transitionDuration:0,
+            backgroundColor : '#319FD3',
+            borderColor : 'black',
+            borderRadius : 4,
+            borderWidth: 1,
+            padding: 10,    // [5, 10, 15, 20]
+            position : function(p) {
+                // 位置回调
+                // console.log && console.log(p);
+                return [p[0] + 10, p[1] - 10];
+            },
+            textStyle : {
+                color: 'white'
+            },
+            formatter: function (params,ticket,callback) {
+                //console.log(params)
+                var res = _xAxis[params[0].dataIndex];
+                for (var i = 0, l = params.length; i < l; i++) {
+                    res += '<br/>' + params[i].series.name + ' : ' + params[i].value;
+                }
+                setTimeout(function (){
+                    // 仅为了模拟异步回调
+                    callback(ticket, res);
+                }, 0)
+                return 'loading';
+            }
+            //formatter: "Template formatter: <br/>{b}<br/>{a}:{c}<br/>{a1}:{c1}"
+        },
         series: _yAxis
     });
 
@@ -1350,12 +1401,15 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
             {
                 type: 'category',
                 boundaryGap: false,
-                data: _xAxis,
+                data: _xAxis_copy,
                 axisLabel: {
-                    interval: mchartgap,
+                    interval: 0,
                     rotate: 0,
                     formatter: function (value, index) {
                         // 格式化成月/日，只在第一个刻度显示年份
+                        if (value == ""){
+                            return value;
+                        }
                         var date = new Date(value);
                         var texts = "(" + date.getDate() + ")";
                         texts = texts + date.getHours();
@@ -1380,6 +1434,39 @@ function refreshLineTreePoint(_xAxis, _pointNum, _point) {
                 }
             }
         ],
+        tooltip : {         // Option config. Can be overwrited by series or data
+            trigger: 'axis',
+            //show: true,   //default true
+            showDelay: 0,
+            hideDelay: 50,
+            transitionDuration:0,
+            backgroundColor : '#319FD3',
+            borderColor : 'black',
+            borderRadius : 4,
+            borderWidth: 1,
+            padding: 10,    // [5, 10, 15, 20]
+            position : function(p) {
+                // 位置回调
+                // console.log && console.log(p);
+                return [p[0] + 10, p[1] - 10];
+            },
+            textStyle : {
+                color: 'white'
+            },
+            formatter: function (params,ticket,callback) {
+                //console.log(params)
+                var res = _xAxis[params[0].dataIndex];
+                for (var i = 0, l = params.length; i < l; i++) {
+                    res += '<br/>' + params[i].series.name + ' : ' + params[i].value;
+                }
+                setTimeout(function (){
+                    // 仅为了模拟异步回调
+                    callback(ticket, res);
+                }, 0)
+                return 'loading';
+            }
+            //formatter: "Template formatter: <br/>{b}<br/>{a}:{c}<br/>{a1}:{c1}"
+        },
         series: _yAxis2
     });
 }
